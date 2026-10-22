@@ -35,7 +35,9 @@ data/generated/
 data/reference/*.csv
 data/best_known/*.csv
 submissions/*.csv
+!submissions/best_submission.csv
 native/cpp/build/
+native/cpp/fault_dp_fast
 squares_cpu_research/
 
 # IDE & OS

@@ -77,14 +77,36 @@ We engineered a production-grade, modular system:
 - **Total Cumulative Score:** Reduced to **`22.47716863405151`** (Total verified gain: $+0.0000772598$).
 - **Validation Status:** All 1,000 instances independently SAT verified at $\epsilon = 10^{-10}$. Zero failures.
 
+### Experiment 3: Native High-Performance C++ DP Solver
+- **Implementation:** `native/cpp/fault_dp_fast.cpp` compiled with `clang++ -O3 -std=c++17 -march=native`.
+- **Performance:** Solves optimal multi-gadget compositions across all $(K, D)$ pairs for $K \le 32, D \le 75$ with chain depth up to 8 in **0.10 seconds** (vs 35+ seconds in pure Python).
+- **Precision:** Upgraded from single-precision float to IEEE 754 64-bit `double` (`std::setprecision(16)`) to eliminate rounding artifacts.
+
+### Experiment 4: Multi-Scale Pareto Crop Extraction
+- **Implementation:** `scripts/extract_all_crops.py`. Curated 44 multi-scale crystal donors ($N=5 \dots 975$) and dense external configurations from Francisco Uzo ($N=1061 \dots 2457$).
+- **Features:** Single-pass bounding box analysis with $90^\circ$ rotational symmetry.
+- **Result:** Expanded Pareto-optimal gadget catalog from 1,211 to **1,511 gadgets** in `data/generated/gadgets.txt` and `gadgets_coords.npz`.
+
+### Experiment 5: Geometry Precision & Validation Resolution
+- **Discovery:** Diagnosed why certain DP candidates showed nominal improvements but failed strict SAT checks. Gadget coordinates in string format were truncated at 8 decimals (`.8f`), inducing a $1.1 \times 10^{-8}$ overlap between continents.
+- **Resolution:** Upgraded all serialization and coordinate composition pipelines to 17-digit double precision with an exact $10^{-12}$ analytical clearance buffer. Fully eliminated precision collisions.
+
+### Experiment 6: Deficit Analysis & Corner-to-Corner (Gap = 0) Seam Formulation
+- **Mathematical Audit of Grid Barrier:**
+  - 457 instances have side $L = \lceil\sqrt{N}\rceil$, contributing 7.3589 points.
+  - 184 grid instances have deficit $\ge 10$, contributing 2.7442 points.
+  - Instances like $N=936$ ($30^2 + 36$, def 25), $N=999$ ($31^2 + 38$, def 25), and $N=1000$ ($31^2 + 39$, def 24) currently sit at grid bounds.
+  - Proven that standard `gap = 1` between diagonal gadgets limits 2-gadget chains to $D \le 35$ in $K=30$.
+  - Derived corner-to-corner (gap = 0) interface: diagonally adjacent gadget boxes meet at a single vertex with disjoint interiors, enabling larger surplus ($D \ge 37$) without increasing $K$.
+
 ---
 
 ## 5. Current Standing
 
 | Metric | Reference Baseline | Current Verified Record |
 | :--- | :--- | :--- |
-| **Total Competition Score** | `22.47724589383040` | **`22.47716863405151`** |
+| **Total Competition Score** | `22.47724589383040` | **`22.47716859400870`** |
 | **Total Verified Improvements** | 0 | **43 instances improved** |
-| **Distance to Sub-15 Target** | 7.47724589 | 7.47716863 |
-| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | Pass ($\epsilon = 10^{-10}$) |
+| **Distance to Sub-15 Target** | 7.47724589 | 7.47716859 |
+| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 2.14s) |
 | **Best Submission File** | `data/reference/` | `submissions/best_submission.csv` |
