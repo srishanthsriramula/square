@@ -43,45 +43,65 @@ def run_single_hop(
     seed: int,
     cur_side: float,
     coords: np.ndarray,
-    iters: int = 300,
+    iters: int = 1000,
     soft: float = 0.35,
-    timeout: float = 120.0
+    timeout: float = 60.0
 ) -> tuple[int, bool, float, Optional[np.ndarray], str]:
-    """Execute a single packer hhop basin hopping run on instance n."""
+    """Execute high-velocity 2-stage packer hop + fq active-set polish."""
     in_file = f"/tmp/p_hop_{n}_{seed}_in.txt"
-    out_file = f"/tmp/p_hop_{n}_{seed}_out.txt"
+    hop_out = f"/tmp/p_hop_{n}_{seed}_hop.txt"
+    q_out = f"/tmp/p_hop_{n}_{seed}_q.txt"
+    sq_out = f"/tmp/p_hop_{n}_{seed}_sq.txt"
     
     try:
         write_engine_config(in_file, coords, cur_side)
+        target_s = cur_side - 0.0008
+        
+        # Stage 1: Fast penalty relaxation basin hopping
         cmd = [
-            str(PACKER_BIN), "hhop",
+            str(PACKER_BIN), "hop",
             "--in", in_file,
+            "--s", f"{target_s:.9f}",
+            "--etol", "1e-6",
             "--iters", str(iters),
-            "--soft", str(soft),
-            "--chains", "8",
-            "--temp", "2e-4",
-            "--gmax", "0.015",
-            "--out", out_file,
+            "--out", hop_out,
             "--seed", str(seed)
         ]
         
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-        if res.returncode == 0 and os.path.exists(out_file):
-            new_side, new_coords = read_engine_config(out_file)
-            if new_side < cur_side - 1e-10:
-                val = validate_packing_sat(new_coords, eps=1e-10)
-                if val["valid"] and val["side"] < cur_side - 1e-10:
-                    return n, True, val["side"], new_coords, f"hhop_s{seed}"
-                    
-        # Fallback: if not improved, check if packer relax --squeeze tightens directly
-        sq_out = f"/tmp/p_sq_{n}_{seed}_out.txt"
+        cand_file = hop_out if os.path.exists(hop_out) else f"{hop_out}.inf"
+        
+        if os.path.exists(cand_file):
+            # Stage 2: fq quench with loosen 1.0000 (preserves tighter boundary)
+            # If hop succeeded (E < 1e-6), polish directly via --no-alm; otherwise run ALM outer loop
+            use_no_alm = os.path.exists(hop_out)
+            cmd_q = [
+                str(FQ_BIN), "quench",
+                "--in", cand_file,
+                "--out", q_out,
+                "--loosen", "1.0000",
+                "--outer", "25",
+                "--pit", "80"
+            ]
+            if use_no_alm:
+                cmd_q.append("--no-alm")
+                
+            subprocess.run(cmd_q, capture_output=True, text=True, timeout=15)
+            if os.path.exists(q_out):
+                new_side, new_coords = read_engine_config(q_out)
+                if new_side < cur_side - 1e-10:
+                    val = validate_packing_sat(new_coords, eps=1e-10)
+                    if val["valid"] and val["side"] < cur_side - 1e-10:
+                        return n, True, val["side"], new_coords, f"hop_q_s{seed}"
+                        
+        # Fallback: direct exact squeeze
         sq_cmd = [
             str(PACKER_BIN), "relax",
             "--in", in_file,
             "--squeeze",
             "--out", sq_out
         ]
-        sq_res = subprocess.run(sq_cmd, capture_output=True, text=True, timeout=30)
+        sq_res = subprocess.run(sq_cmd, capture_output=True, text=True, timeout=20)
         if sq_res.returncode == 0 and os.path.exists(sq_out):
             sq_side, sq_coords = read_engine_config(sq_out)
             if sq_side < cur_side - 1e-10:
@@ -93,7 +113,7 @@ def run_single_hop(
     except Exception as e:
         return n, False, cur_side, None, f"error: {e}"
     finally:
-        for f in [in_file, out_file, f"/tmp/p_sq_{n}_{seed}_out.txt"]:
+        for f in [in_file, hop_out, f"{hop_out}.inf", q_out, sq_out]:
             if os.path.exists(f):
                 try:
                     os.remove(f)

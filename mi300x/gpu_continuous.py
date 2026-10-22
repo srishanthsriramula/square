@@ -27,11 +27,6 @@ LOG_FILE = Path(__file__).parent.parent / "live_engine.log"
 
 def log(msg: str):
     print(msg, flush=True)
-    try:
-        with open(LOG_FILE, "a") as f:
-            f.write(msg + "\n")
-    except Exception:
-        pass
 
 
 def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.ndarray, float, bool]:
@@ -39,8 +34,8 @@ def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.nd
     cur_s = reg.get_side(n)
     ceil_s = math.ceil(math.sqrt(n))
     
-    # If instance is currently at or near the integer ceiling, check donor n-1
-    if abs(cur_s - ceil_s) < 0.05 and n > 1:
+    # If instance is currently locked at or above the integer ceiling, check donor n-1
+    if cur_s >= ceil_s - 1e-4 and n > 1:
         prev_s = reg.get_side(n - 1)
         if prev_s < ceil_s - 1e-4:
             donor_coords = reg.get_packing(n - 1)
@@ -64,10 +59,11 @@ def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.nd
             
             # Append inserted square into the void
             cand = np.vstack([donor_coords, [[best_pt[0], best_pt[1], typical_tilt]]])
-            actual_target = ceil_s - 0.003
+            actual_target = ceil_s - 0.001
             return cand, actual_target, True
             
-    return reg.get_packing(n), cur_s - 0.003, False
+    # For general instances, target a reachable incremental step (e.g. 0.0006)
+    return reg.get_packing(n), cur_s - 0.0006, False
 
 
 def run_gpu_continuous():
@@ -102,13 +98,13 @@ def run_gpu_continuous():
 
             perturb = "0.010" if is_donor else "0.005"
             if n <= 150:
-                sweeps = "8000"
+                sweeps = "10000"
             elif n <= 400:
-                sweeps = "4000"
+                sweeps = "6000"
             elif n <= 700:
-                sweeps = "2500"
+                sweeps = "4000"
             else:
-                sweeps = "1500"
+                sweeps = "2500"
 
             cmd = [
                 str(BUILD_BIN),
@@ -117,7 +113,8 @@ def run_gpu_continuous():
                 "--blocks", "1024",
                 "--sweeps", sweeps,
                 "--perturb", perturb,
-                "--tele", "0.0",
+                "--tele", "0.005",
+                "--temp", "5e-3",
                 "--keep", "4",
                 "--out", out_prefix,
                 "--in", seed_file,
@@ -162,12 +159,11 @@ def run_gpu_continuous():
                             str(FQ_BIN), "quench",
                             "--in", cfile,
                             "--out", q_out,
-                            "--loosen", "1.0005",
-                            "--round-r0", "0.02",
-                            "--round-compress",
-                            "--round-steps", "30"
+                            "--loosen", "1.0000",
+                            "--outer", "25",
+                            "--pit", "80"
                         ]
-                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=30)
+                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=20)
                         if qres.returncode == 0 and os.path.exists(q_out):
                             q_side, q_coords = read_engine_config(q_out)
                             if q_side < cur_s - 1e-10:

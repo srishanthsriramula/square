@@ -107,6 +107,15 @@ __device__ __forceinline__ float wall(float x, float y, float c, float s, float 
     return e;
 }
 
+template <typename T>
+__device__ __forceinline__ T bcast0(T val, int g) {
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIPCC__)
+    return __shfl(val, 0, LPP);
+#else
+    return __shfl_sync(GMASK(g), val, 0, LPP);
+#endif
+}
+
 __device__ __forceinline__ float group_sum(float e, int g) {
 #if LPP > 1
     #pragma unroll
@@ -329,36 +338,63 @@ __global__ __launch_bounds__(BLOCK) void anneal(
         float mu = mu0 * __expf(frac * __logf(mu1 / mu0));
 
         for (int m = 0; m < n; m++) {
-            int i = pick(st, n);
-            float4 a = q[i];
-            float e0 = viol_of(i, a.x, a.y, a.z, a.w, q, n, side, g);
-
-            float nx, ny, nt;
-            if (rndf(st) < tele) {
-                nx = 0.5f + rndf(st) * (side - 1.0f);
-                ny = 0.5f + rndf(st) * (side - 1.0f);
-                nt = rndf(st) * 1.5707963f;
-            } else {
-                nx = a.x + rndn(st) * step;
-                ny = a.y + rndn(st) * step;
-                nt = th[i] + rndn(st) * step * 0.9f;
+            int i = 0;
+            float xi = 0.0f, yi = 0.0f, ci = 0.0f, si = 0.0f;
+            float nx = 0.0f, ny = 0.0f, nc = 0.0f, ns = 0.0f, nt = 0.0f;
+            if (g == 0) {
+                i = pick(st, n);
+                float4 a = q[i];
+                xi = a.x; yi = a.y; ci = a.z; si = a.w;
+                if (rndf(st) < tele) {
+                    nx = 0.5f + rndf(st) * (side - 1.0f);
+                    ny = 0.5f + rndf(st) * (side - 1.0f);
+                    nt = rndf(st) * 1.5707963f;
+                } else {
+                    nx = a.x + rndn(st) * step;
+                    ny = a.y + rndn(st) * step;
+                    nt = th[i] + rndn(st) * step * 0.9f;
+                }
+                __sincosf(nt, &ns, &nc);
             }
-            float nc, ns;
-            __sincosf(nt, &ns, &nc);
+            i  = bcast0(i,  g);
+            xi = bcast0(xi, g);
+            yi = bcast0(yi, g);
+            ci = bcast0(ci, g);
+            si = bcast0(si, g);
+            nx = bcast0(nx, g);
+            ny = bcast0(ny, g);
+            nc = bcast0(nc, g);
+            ns = bcast0(ns, g);
+            nt = bcast0(nt, g);
+
+            float e0 = viol_of(i, xi, yi, ci, si, q, n, side, g);
             float e1 = viol_of(i, nx, ny, nc, ns, q, n, side, g);
             float d = mu * (e1 - e0);
-            bool acc = (d <= 0.0f) || (rndf(st) < __expf(-d / T));
-            if (acc && g == 0) { q[i] = make_float4(nx, ny, nc, ns); th[i] = nt; }
+            bool acc = false;
+            if (g == 0) {
+                acc = (d <= 0.0f) || (rndf(st) < __expf(-d / T));
+                if (acc) {
+                    q[i] = make_float4(nx, ny, nc, ns);
+                    th[i] = nt;
+                }
+                moves++;
+            }
             SYNC_WARP(GMASK(g));
-            moves++;
         }
 
         for (int m = 0; m < 8; m++) {
+            float dside = 0.0f;
+            if (g == 0) dside = rndn(st) * step * 0.5f;
+            dside = bcast0(dside, g);
+
             float w0 = wall_total(q, n, side, g);
-            float dside = rndn(st) * step * 0.5f;
             float w1 = wall_total(q, n, side + dside, g);
             float d = dside + mu * (w1 - w0);
-            if (d <= 0.0f || rndf(st) < __expf(-d / T)) side = fminf(side + dside, side0);
+            if (g == 0) {
+                if (d <= 0.0f || rndf(st) < __expf(-d / T))
+                    side = fminf(side + dside, side0);
+            }
+            side = bcast0(side, g);
         }
     }
 
