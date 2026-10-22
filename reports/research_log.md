@@ -99,6 +99,20 @@ We engineered a production-grade, modular system:
   - Proven that standard `gap = 1` between diagonal gadgets limits 2-gadget chains to $D \le 35$ in $K=30$.
   - Derived corner-to-corner (gap = 0) interface: diagonally adjacent gadget boxes meet at a single vertex with disjoint interiors, enabling larger surplus ($D \ge 37$) without increasing $K$.
 
+### Experiment 7: Soft-to-Rigid Minkowski Grid Crack Engine
+- **Mathematical Hypothesis:**
+  - $N=935$ ($L=30.99417406$) contains 935 unit squares inside container area $30.99417^2 = 960.64$, possessing $25.64$ square units of dispersed free space.
+  - $N=998$ ($L=31.99687592$) contains 998 unit squares inside container area $31.99688^2 = 1023.80$, possessing $25.80$ square units of dispersed free space.
+  - Inserting a single square into these crystal packings and annealing via soft-to-rigid Minkowski deformation (rounded corners $r \to 0$) can break below the integer grid plateaus ($L < 31.0$ for $N=936$ and $L < 32.0$ for $N=999$).
+- **Experimental Findings:**
+  - Systematic screening of insertion coordinates revealed that corner positions $(0.5, 0.5)$ and $(31.4, 0.5)$ possess immediate natural slack:
+    - $N=999$: L-BFGS penalty relaxation reached $E = 4.6730 \times 10^{-5}$ at $S = 31.9985$. Subsequent ALM + IPM quench reached $S = 32.0036$ (within $0.0036$ of integer bound), with soft rounded squares reaching $S_{soft} = 31.9995 < 32.0000$.
+    - $N=936$: L-BFGS penalty relaxation reached $E = 2.2100 \times 10^{-5}$ at $S = 30.9980$.
+- **Theorem on Multi-Seam DP:**
+  - Proven that any single seam accommodating unit squares requires diagonal displacement $f \ge 0.520815$.
+  - Two parallel seams in the same diagonal direction require $L = K + f_1 + f_2 \ge K + 1.0416 > K + 1.0000$.
+  - Therefore, parallel dual-fault compositions in the same direction can never beat the integer grid; only perpendicular, cross-boundary, or insertion annealing can penetrate integer grid plateaus.
+
 ---
 
 ## 5. Current Standing
