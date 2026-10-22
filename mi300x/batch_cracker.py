@@ -79,6 +79,8 @@ def crack_instance_on_gpu(
         "--side", f"{target_side:.9f}",
         "--blocks", str(blocks),
         "--sweeps", str(sweeps),
+        "--perturb", "0.08",
+        "--tele", "0.01",
         "--keep", "8",
         "--out", out_prefix,
         "--seed", str(int(time.time() * 1000) % 2000000000)
@@ -86,17 +88,17 @@ def crack_instance_on_gpu(
     if seed_file and os.path.exists(seed_file):
         cmd.extend(["--in", seed_file])
 
-    print(f"[GPU MI300X] Launching {blocks * 2} annealing chains for N={n} (target L={target_side:.6f})...")
+    print(f"[GPU MI300X] Launching {blocks * 2} annealing chains for N={n} (target L={target_side:.6f})...", flush=True)
     t0 = time.time()
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         elapsed = time.time() - t0
-        print(f"[GPU MI300X] Finished in {elapsed:.2f}s. Output summary: {res.stdout.splitlines()[-3:] if res.stdout else 'None'}")
+        print(f"[GPU MI300X] Finished in {elapsed:.2f}s. Output summary: {res.stdout.splitlines()[-3:] if res.stdout else 'None'}", flush=True)
     except subprocess.TimeoutExpired:
-        print(f"[GPU MI300X] Timed out on N={n}")
+        print(f"[GPU MI300X] Timed out on N={n}", flush=True)
         return []
     except Exception as e:
-        print(f"[GPU MI300X] Error running kernel: {e}")
+        print(f"[GPU MI300X] Error running kernel: {e}", flush=True)
         return []
 
     # Read output candidate files
@@ -175,7 +177,7 @@ def run_mi300x_campaign(targets: List[int], blocks: int = 256, sweeps: int = 500
         seed_file = f"/tmp/seed_{n}.txt"
         write_engine_config(seed_file, cur_coords, cur_side)
 
-        print(f"\n[{idx+1}/{len(targets)}] Processing N={n} (Current L={cur_side:.6f})...")
+        print(f"\n[{idx+1}/{len(targets)}] Processing N={n} (Current L={cur_side:.6f})...", flush=True)
         candidates = crack_instance_on_gpu(n, cur_side, seed_file=seed_file, blocks=blocks, sweeps=sweeps)
 
         best_found_side = cur_side
@@ -192,28 +194,28 @@ def run_mi300x_campaign(targets: List[int], blocks: int = 256, sweeps: int = 500
 
         if best_found_coords is not None and best_found_side < cur_side - 1e-10:
             gain = (cur_side - best_found_side) / math.sqrt(n)
-            print(f"  [CRACKED] N={n}: {cur_side:.10f} -> {best_found_side:.10f} (Gain: +{gain:.8f})")
+            print(f"  [CRACKED] N={n}: {cur_side:.10f} -> {best_found_side:.10f} (Gain: +{gain:.8f})", flush=True)
             reg.register_candidate(n, best_found_coords, source=f"mi300x_hip_sa")
             improved_count += 1
             total_gain += gain
             
             # Auto-save submission and cascade
             reg.save_submission()
-            print(f"  --> Updated Certified Score: {reg.get_score():.14f}")
+            print(f"  --> Updated Certified Score: {reg.get_score():.14f}", flush=True)
         else:
-            print(f"  [-] N={n}: No breakthrough this iteration.")
+            print(f"  [-] N={n}: No breakthrough this iteration.", flush=True)
 
         if os.path.exists(seed_file):
             try: os.remove(seed_file)
             except: pass
 
     final_score = reg.get_score()
-    print("\n" + "=" * 70)
-    print("MI300X CAMPAIGN COMPLETE")
-    print(f"Instances cracked: {improved_count}/{len(targets)}")
-    print(f"Total Score Drop:  -{total_gain:.14f}")
-    print(f"Final Score:       {final_score:.14f}")
-    print("=" * 70)
+    print("\n" + "=" * 70, flush=True)
+    print("MI300X CAMPAIGN COMPLETE", flush=True)
+    print(f"Instances cracked: {improved_count}/{len(targets)}", flush=True)
+    print(f"Total Score Drop:  -{total_gain:.14f}", flush=True)
+    print(f"Final Score:       {final_score:.14f}", flush=True)
+    print("=" * 70, flush=True)
 
 
 if __name__ == "__main__":
