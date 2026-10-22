@@ -88,10 +88,11 @@ def extract_crops_from_donors(
 ) -> List[Gadget]:
     """Extract rectangular window crops that contain surplus squares."""
     if donor_ns is None:
-        # High density and diverse rotated packings
+        # High density and diverse rotated packings with N <= 185
         donor_ns = [
-            5, 11, 14, 18, 26, 28, 40, 50, 65, 82, 85, 105, 126,
-            147, 170, 207, 265, 301, 372, 451, 602, 641, 653, 699
+            5, 11, 14, 18, 26, 28, 40, 50, 65, 82, 85,
+            105, 106, 107, 108, 109, 110, 126, 127, 128, 129, 130, 131, 132,
+            147, 170, 180, 181, 182, 183
         ]
         
     crops: List[Gadget] = []
