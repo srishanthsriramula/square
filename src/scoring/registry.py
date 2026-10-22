@@ -181,10 +181,25 @@ class PackingRegistry:
         self.current_best_json.write_text(json.dumps(info, indent=2) + "\n")
 
     def save_submission(self, dest_path: Optional[str | Path] = None):
-        """Export current best packings to submission CSV atomically."""
+        """Export current best packings to submission CSV atomically with monotonic safe-merge."""
         dest = Path(dest_path) if dest_path else self.best_csv_path
         dest.parent.mkdir(parents=True, exist_ok=True)
         
+        # Safe-merge with on-disk state: never regress any instance improved by a concurrent process
+        if dest.exists():
+            try:
+                disk_packings = load_submission_csv(dest)
+                for n in range(1, 1001):
+                    if n in disk_packings:
+                        disk_s = compute_enclosing_side(disk_packings[n])
+                        # If on-disk packing is better than our in-memory packing, adopt on-disk packing
+                        if disk_s < self.sides.get(n, float("inf")) - 1e-11:
+                            self.packings[n] = disk_packings[n]
+                            self.sides[n] = disk_s
+                self._recompute_stats()
+            except Exception:
+                pass
+
         # Use PID + nanosecond timestamp to prevent multi-worker collisions
         temp_dest = dest.with_name(f"{dest.stem}_{os.getpid()}_{time.time_ns()}.tmp")
         try:
