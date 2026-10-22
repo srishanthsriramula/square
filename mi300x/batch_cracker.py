@@ -18,6 +18,7 @@ import os
 import subprocess
 import sys
 import time
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -35,18 +36,21 @@ CANDIDATES_DIR = MI300X_DIR / "candidates"
 
 
 def get_high_deficit_grid_targets(min_deficit: int = 5) -> List[int]:
-    """Return all grid instances with (K+1)^2 - N >= min_deficit, sorted by deficit descending."""
+    """Return all true integer grid instances with (K+1)^2 - N >= min_deficit, sorted by deficit descending."""
+    reg = PackingRegistry()
     targets = []
     for K in range(2, 32):
         for n in range(K * (K + 1), (K + 1) ** 2):
             if n > 1000:
                 continue
             deficit = (K + 1) ** 2 - n
-            if deficit >= min_deficit:
+            cur_s = reg.get_side(n)
+            # Only target TRUE integer grid instances
+            if abs(cur_s - round(cur_s)) < 1e-9 and deficit >= min_deficit:
                 targets.append((n, K + 1, deficit))
     
-    # Sort primarily by potential score gain (deficit / sqrt(n)) descending
-    targets.sort(key=lambda x: x[2] / math.sqrt(x[0]), reverse=True)
+    # Sort by deficit descending
+    targets.sort(key=lambda x: x[2], reverse=True)
     return [t[0] for t in targets]
 
 
@@ -125,14 +129,14 @@ def crack_instance_on_gpu(
     return candidates
 
 
-def polish_and_certify(n: int, coords: np.ndarray, best_cur_side: float) -> Optional[Tuple[float, np.ndarray]]:
-    """Polish a candidate packing using fq quench and certify with double-precision SAT."""
-    in_file = f"/tmp/polish_{n}_in.txt"
-    out_file = f"/tmp/polish_{n}_out.txt"
+def polish_single_candidate(args: Tuple[int, int, np.ndarray, float]) -> Optional[Tuple[float, np.ndarray]]:
+    """Worker task: polish a candidate packing on CPU using fq quench."""
+    n, cand_idx, coords, best_cur_side = args
+    in_file = f"/tmp/polish_{n}_{cand_idx}_in.txt"
+    out_file = f"/tmp/polish_{n}_{cand_idx}_out.txt"
     cur_side = compute_enclosing_side(coords)
     write_engine_config(in_file, coords, cur_side)
 
-    # Active-set ALM polish
     cmd = [
         str(FQ_BIN), "quench",
         "--in", in_file,
@@ -140,10 +144,10 @@ def polish_and_certify(n: int, coords: np.ndarray, best_cur_side: float) -> Opti
         "--loosen", "1.01",
         "--round-r0", "0.05",
         "--round-compress",
-        "--round-steps", "30"
+        "--round-steps", "25"
     ]
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
         if res.returncode == 0 and os.path.exists(out_file):
             cand_side, cand_coords = read_engine_config(out_file)
             val = validate_packing_sat(cand_coords, eps=1e-10, exhaustive=(n <= 50))
@@ -183,14 +187,16 @@ def run_mi300x_campaign(targets: List[int], blocks: int = 256, sweeps: int = 500
         best_found_side = cur_side
         best_found_coords = None
 
-        for cand_side, cand_coords in candidates:
-            # Polish on CPU
-            polished = polish_and_certify(n, cand_coords, best_found_side)
-            if polished is not None:
-                p_side, p_coords = polished
-                if p_side < best_found_side - 1e-10:
-                    best_found_side = p_side
-                    best_found_coords = p_coords
+        if candidates:
+            # Parallel CPU polish across 6 workers on 20-core Intel Xeon
+            tasks = [(n, c_idx, cand_coords, cur_side) for c_idx, (_, cand_coords) in enumerate(candidates[:6])]
+            with ProcessPoolExecutor(max_workers=6) as executor:
+                for res in executor.map(polish_single_candidate, tasks):
+                    if res is not None:
+                        p_side, p_coords = res
+                        if p_side < best_found_side - 1e-10:
+                            best_found_side = p_side
+                            best_found_coords = p_coords
 
         if best_found_coords is not None and best_found_side < cur_side - 1e-10:
             gain = (cur_side - best_found_side) / math.sqrt(n)
