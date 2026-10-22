@@ -78,4 +78,5 @@ def analyze(csv_path: str):
     print(f"\nDetailed metrics written to {out_path}")
 
 if __name__ == "__main__":
-    analyze("data/reference/improved_submission_cpu.csv")
+    target_csv = sys.argv[1] if len(sys.argv) > 1 else "submissions/best_submission.csv"
+    analyze(target_csv)

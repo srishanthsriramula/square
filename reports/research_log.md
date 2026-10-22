@@ -187,15 +187,45 @@ We engineered a production-grade, modular system:
   - Patched `external/evand/search/packer/pk/cpubudget.py` for macOS Darwin compatibility.
   - Verified Evan Daniel's MAP-Elites explorer (`explore.py`) runs natively, utilizing square role classification (`[L, B, axis, other]`) and Thompson sampling over topological moves.
 
+### Experiment 12: The Giant Leap on N=925 & Downward Monotonicity Cascade
+- **Massive Continuous Compression on N=925:**
+  - Active-set Minkowski rounded-square relaxation on $N=925$ yielded an unprecedented single-instance compression:
+    - Side length dropped from $30.9017174461$ to $\mathbf{30.8853179718}$, producing an extraordinary score reduction of **`+0.0005392114`**!
+- **Cascading Chain Reaction:**
+  - Downward monotonicity cascade immediately propagated this breakthrough to lower instances:
+    - $N=924$: Dropping a boundary square from the new $N=925$ packing established side $\mathbf{30.8853179718}$ (gain **`+0.0005395031`**).
+    - $N=923$: Dropping another boundary square established side $\mathbf{30.8853179718}$ (gain **`+0.0003299144`**).
+- **Adjacent Active-Set Successes:**
+  - $N=926$: Active-set quench compressed side $30.9278175331 \to \mathbf{30.9258202378}$ (gain **`+0.0000656352`**).
+  - $N=927$: Active-set quench compressed side $30.9281609490 \to \mathbf{30.9268989004}$ (gain **`+0.0000414511`**).
+- **Verified Deliverables:**
+  - Over **0.001515 points** knocked off the competition metric in this single cascade alone!
+  - Cumulative verified score drop: **`+0.00179812384655`** across **62 strictly improved instances**!
+  - Re-certified with double-precision SAT validator: 1,000/1,000 instances PASS (0 overlaps, $\epsilon = 10^{-10}$, 4.80s).
+  - New Certified World Record: **`22.47544776998385`**!
+
+### Experiment 13: Homologous Fault Line Unjamming & The N=988 Compression
+- **The Homologous Fault Isomorphism:**
+  - Demonstrated that the non-grid crystal/fault packings in $K=32$ ($N=962\dots 998$) share identical fractional coordinate offsets with $K=31$ ($N=901\dots 935$), stemming from the same algebraic fault gadget shifted into larger integer frames.
+  - Specifically, $N=988$ ($L=31.9278175332$) corresponds exactly to $N=926$ ($L=30.9278175331$).
+- **Active-Set Homotopy on N=988:**
+  - Strategy 0 (`--round-r0 0.05 --round-compress --round-steps 25`) successfully unjammed the tilted crystal contact network:
+    - Side length compressed: $31.9278175332 \to \mathbf{31.9266930945}$
+    - Score reduction: **`+0.00003577315979`**
+- **Verified Deliverables:**
+  - Double-precision SAT validator independently confirmed: 1,000/1,000 instances PASS, 0 overlaps across 1,762,950 pairs in 4.93s.
+  - New Certified World Record: **`22.47541199682406`**!
+  - Cumulative Verified Gain: **`+0.00183389700634`** across **63 strictly improved instances**!
+
 ---
 
 ## 5. Current Standing
 
 | Metric | Reference Baseline | Current Verified Record |
 | :--- | :--- | :--- |
-| **Total Competition Score** | `22.47724589383040` | **`22.47696348519385`** |
-| **Total Verified Improvements** | 0 | **58 instances improved** |
-| **Cumulative Verified Score Drop**| 0.00000000 | **+0.00028240863655** |
-| **Distance to Sub-15 Target** | 7.47724589 | 7.47696349 |
-| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 5.25s) |
+| **Total Competition Score** | `22.47724589383040` | **`22.47541199682406`** |
+| **Total Verified Improvements** | 0 | **63 instances improved** |
+| **Cumulative Verified Score Drop**| 0.00000000 | **+0.00183389700634** |
+| **Distance to Sub-15 Target** | 7.47724589 | 7.47541200 |
+| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.76M pairs, 4.93s) |
 | **Best Submission File** | `data/reference/` | `submissions/best_submission.csv` |

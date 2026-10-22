@@ -166,7 +166,7 @@ if __name__ == "__main__":
         # Filter for untouched non-grid in range
         from src.validation.validator import load_submission_csv
         from src.geometry.sat import compute_enclosing_side
-        ref_packings = load_submission_csv('improved_submission_cpu.csv')
+        ref_packings = load_submission_csv('data/reference/improved_submission_cpu.csv')
         for n in range(lo, hi + 1):
             reg_s = reg.get_side(n)
             sqn = math.sqrt(n)
