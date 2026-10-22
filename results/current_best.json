@@ -1,7 +1,7 @@
 {
-  "total_score": 22.4650650796876,
-  "last_updated": "2026-10-22 20:23:53",
-  "last_improved_n": 923,
-  "last_gain": 8.081094628806078e-05,
-  "last_source": "subset_drop_from_924"
+  "total_score": 22.464710011429194,
+  "last_updated": "2026-10-23 02:53:38",
+  "last_improved_n": 810,
+  "last_gain": 1.055688705008863e-05,
+  "last_source": "fault_dp_mondrian_assembly"
 }
