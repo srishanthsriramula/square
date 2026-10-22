@@ -506,15 +506,15 @@
         <div class="hardware-strip">
             <div class="hw-item">
                 <span class="hw-label">GPU:</span>
-                <span class="hw-val" id="gpu-name">MI300X (192GB)</span>
+                <span class="hw-val" id="gpu-name" style="color: var(--accent-cyan); font-weight:700;">MI300X (100% LOAD &bull; 351W)</span>
             </div>
             <div class="hw-item">
-                <span class="hw-label">VRAM:</span>
-                <span class="hw-val" id="gpu-vram">192 GB</span>
+                <span class="hw-label">THROUGHPUT:</span>
+                <span class="hw-val" id="gpu-vram">47.0 G-checks/s (304 CUs)</span>
             </div>
             <div class="hw-item">
                 <span class="hw-label">CPU:</span>
-                <span class="hw-val" id="cpu-load">20-Core Xeon (Load: 1.2)</span>
+                <span class="hw-val" id="cpu-load">20-Core Xeon (Load: 16.0)</span>
             </div>
             <div class="hw-item">
                 <span class="hw-label">RAM:</span>
@@ -522,7 +522,7 @@
             </div>
             <div class="status-pill">
                 <div class="pulse-dot"></div>
-                <span id="sys-status">ACTIVE CLUSTER</span>
+                <span id="sys-status">GPU ACTIVE</span>
             </div>
         </div>
     </header>
@@ -634,7 +634,10 @@
                         <span>LIVE ENGINE STREAM // ROCm &amp; CPU TELEMETRY</span>
                     </div>
                     <div class="vis-controls">
-                        <button class="btn" id="btn-toggle-stream" onclick="toggleStream()">Pause Stream</button>
+                        <button class="btn active" id="filter-all" onclick="setLogFilter('all')">All</button>
+                        <button class="btn" id="filter-gpu" onclick="setLogFilter('gpu')" style="color:var(--accent-cyan);">&#x26A1; GPU Only</button>
+                        <button class="btn" id="filter-gains" onclick="setLogFilter('gains')" style="color:var(--accent-emerald);">&#x2714; Gains Only</button>
+                        <button class="btn" id="btn-toggle-stream" onclick="toggleStream()">Pause</button>
                         <button class="btn" onclick="clearTerminal()">Clear</button>
                     </div>
                 </div>

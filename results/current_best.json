@@ -1,7 +1,7 @@
 {
-  "total_score": 22.474841985325835,
-  "last_updated": "2026-10-22 17:47:55",
-  "last_improved_n": 866,
-  "last_gain": 6.790423571639667e-05,
-  "last_source": "fq_strat2_seed1034"
+  "total_score": 22.469752833061865,
+  "last_updated": "2026-10-22 23:59:41",
+  "last_improved_n": 746,
+  "last_gain": 1.0676600310963639e-05,
+  "last_source": "mondrian_dp_fq_local"
 }
