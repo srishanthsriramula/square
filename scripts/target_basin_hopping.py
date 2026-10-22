@@ -70,12 +70,15 @@ def optimize_puzzle(
             cand_side = h_side
             cand_coords = h_coords
             
-    # 2. ALM + IPM Polish (fq quench)
+    # 2. ALM + IPM Polish (fq quench) with strict 1.0000 looseness (no dilation)
     write_engine_config(hop_out_path, cand_coords, cand_side)
     cmd_q = [
         str(FQ_BIN), "quench",
         "--in", hop_out_path,
         "--out", q_out_path,
+        "--loosen", "1.0000",
+        "--outer", "25",
+        "--pit", "80",
         "--seed", str(seed)
     ]
     try:
