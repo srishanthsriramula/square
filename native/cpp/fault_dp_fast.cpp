@@ -11,8 +11,8 @@
 #include <iomanip>
 
 constexpr int MAX_K = 32;
-constexpr int MAX_D = 75;
-constexpr int MAX_DEPTH = 8;
+constexpr int MAX_D = 120;
+constexpr int MAX_DEPTH = 12;
 constexpr double INF = 1e9;
 
 struct Gadget {

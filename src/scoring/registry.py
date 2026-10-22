@@ -180,31 +180,39 @@ class PackingRegistry:
         self.current_best_json.write_text(json.dumps(info, indent=2) + "\n")
 
     def save_submission(self, dest_path: Optional[str | Path] = None):
-        """Export current best packings to submission CSV."""
+        """Export current best packings to submission CSV atomically."""
         dest = Path(dest_path) if dest_path else self.best_csv_path
         dest.parent.mkdir(parents=True, exist_ok=True)
         
-        temp_dest = dest.with_suffix(".tmp")
-        with open(temp_dest, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(EXPECTED_COLUMNS)
-            row_count = 0
-            for n in range(1, 1001):
-                arr = self.packings[n]
-                for sq_id, (x, y, theta) in enumerate(arr):
-                    writer.writerow([
-                        f"{n}_{sq_id}",
-                        n,
-                        sq_id,
-                        f"{x:.16f}",
-                        f"{y:.16f}",
-                        f"{theta:.16f}"
-                    ])
-                    row_count += 1
-                    
-        assert row_count == EXPECTED_TOTAL_ROWS, f"Exported {row_count} rows, expected {EXPECTED_TOTAL_ROWS}"
-        temp_dest.replace(dest)
-        
-        # Also copy to submissions/best_submission.csv
-        if dest != self.export_csv:
-            shutil.copy2(dest, self.export_csv)
+        # Use PID + nanosecond timestamp to prevent multi-worker collisions
+        temp_dest = dest.with_name(f"{dest.stem}_{os.getpid()}_{time.time_ns()}.tmp")
+        try:
+            with open(temp_dest, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(EXPECTED_COLUMNS)
+                row_count = 0
+                for n in range(1, 1001):
+                    arr = self.packings[n]
+                    for sq_id, (x, y, theta) in enumerate(arr):
+                        writer.writerow([
+                            f"{n}_{sq_id}",
+                            n,
+                            sq_id,
+                            f"{x:.16f}",
+                            f"{y:.16f}",
+                            f"{theta:.16f}"
+                        ])
+                        row_count += 1
+                        
+            assert row_count == EXPECTED_TOTAL_ROWS, f"Exported {row_count} rows, expected {EXPECTED_TOTAL_ROWS}"
+            temp_dest.replace(dest)
+            
+            # Also copy to submissions/best_submission.csv
+            if dest != self.export_csv:
+                shutil.copy2(dest, self.export_csv)
+        finally:
+            if temp_dest.exists():
+                try:
+                    temp_dest.unlink()
+                except Exception:
+                    pass
