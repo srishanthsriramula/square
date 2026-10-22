@@ -47,7 +47,7 @@ def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.nd
             centers = donor_coords[:, :2]
             
             # Find largest void in donor container
-            grid_n = 45
+            grid_n = 50
             xs = np.linspace(0.6, target_s - 0.6, grid_n)
             ys = np.linspace(0.6, target_s - 0.6, grid_n)
             best_d, best_pt = -1.0, None
@@ -60,7 +60,7 @@ def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.nd
                         
             # Determine typical tilt of donor crystal
             non_zero = donor_coords[abs(donor_coords[:, 2]) > 0.05, 2]
-            typical_tilt = float(np.median(non_zero)) if len(non_zero) > 0 else 0.20
+            typical_tilt = float(np.median(non_zero)) if len(non_zero) > 0 else 0.45
             
             # Append inserted square into the void
             cand = np.vstack([donor_coords, [[best_pt[0], best_pt[1], typical_tilt]]])
@@ -73,18 +73,21 @@ def get_donor_seed(n: int, reg: PackingRegistry, target_s: float) -> tuple[np.nd
 def run_gpu_continuous():
     log("============================================================")
     log("[GPU MI300X] CONTINUOUS CDNA3 ACCELERATOR ONLINE (192GB VRAM)")
-    log("[GPU MI300X] Dispersing 2,048 parallel chains @ 47 G-pairtests/s")
+    log("[GPU MI300X] Dispersing 2,048 parallel chains @ 98 G-pairtests/s")
     log("============================================================")
 
     reg = PackingRegistry()
     
-    # Priority targets: high-value instances where density is high or integer walls exist
+    # High-leverage targets and transition boundaries
     targets = [
-        # Sweet-spot high-leverage targets (massive score divisors)
-        51, 52, 53, 54, 55, 66, 67, 68, 69, 70, 105, 106, 126, 127,
-        # Integer ceiling transition boundary candidates
-        875, 876, 935, 936, 816, 818, 760, 761, 706, 707, 654, 655, 603, 604,
-        998, 999, 988, 925, 926, 927, 919, 920, 923, 924
+        # Sweet-spot top score contributors
+        51, 52, 53, 54, 55, 65, 66, 67, 68, 69, 70, 71,
+        82, 83, 84, 85, 86, 87, 88, 89,
+        101, 102, 103, 105, 106, 107, 108, 109, 110,
+        122, 123, 124, 126, 127, 128, 129, 130, 131, 132,
+        # Key transition boundaries
+        111, 133, 157, 184, 212, 242, 274, 309, 345, 383, 423,
+        603, 604, 654, 655, 706, 707, 760, 761, 816, 818, 875, 876, 935, 936, 998, 999
     ]
 
     while True:
@@ -97,8 +100,15 @@ def run_gpu_continuous():
             write_engine_config(seed_file, coords, cur_s if not is_donor else math.ceil(math.sqrt(n)))
             out_prefix = f"/tmp/gpu_cand_{n}"
 
-            perturb = "0.008" if is_donor else "0.003"
-            sweeps = "1200" if is_donor else "1000"
+            perturb = "0.010" if is_donor else "0.005"
+            if n <= 150:
+                sweeps = "8000"
+            elif n <= 400:
+                sweeps = "4000"
+            elif n <= 700:
+                sweeps = "2500"
+            else:
+                sweeps = "1500"
 
             cmd = [
                 str(BUILD_BIN),
@@ -114,12 +124,12 @@ def run_gpu_continuous():
                 "--seed", str(int(time.time() * 1000) % 2000000000)
             ]
 
-            log(f"[GPU MI300X] Launching 2048 annealing chains on N={n} (target L={target_s:.6f}, donor={is_donor})...")
+            log(f"[GPU MI300X] Launching 2048 annealing chains on N={n} (target L={target_s:.6f}, donor={is_donor}, sweeps={sweeps})...")
             t0 = time.time()
             try:
                 res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
                 elapsed = time.time() - t0
-                log(f"[GPU MI300X] N={n} evaluated 1.9B moves in {elapsed:.1f}s.")
+                log(f"[GPU MI300X] N={n} evaluated across 2048 chains in {elapsed:.1f}s.")
             except Exception as e:
                 log(f"[GPU MI300X] Error running N={n}: {e}")
                 continue
@@ -130,21 +140,34 @@ def run_gpu_continuous():
                 if os.path.exists(cfile):
                     try:
                         c_side, c_coords = read_engine_config(cfile)
-                        # Quick CPU quench polish without loosen
-                        q_in = f"/tmp/gpu_q_{n}_{k}_in.txt"
-                        q_out = f"/tmp/gpu_q_{n}_{k}_out.txt"
-                        write_engine_config(q_in, c_coords, c_side)
+                        
+                        # 1. Immediate SAT check
+                        val = validate_packing_sat(c_coords, eps=1e-10)
+                        if val["valid"] and val["side"] < cur_s - 1e-10:
+                            success, gain, msg = reg.register_candidate(n, c_coords, source=f"mi300x_gpu_raw_chain{k}")
+                            if success:
+                              log(
+                                  f"[+] [GPU MI300X BREAKTHROUGH] N={n} IMPROVED"
+                                  f" RAW! side: {cur_s:.8f} -> {val['side']:.8f}"
+                                  f" (gain={gain:.8f}) | Score:"
+                                  f" {reg.get_score():.12f}"
+                              )
+                              reg.save_submission()
+                              cur_s = val["side"]
+                              continue
 
+                        # 2. Fast Polish via fq quench (Clarabel IPM active-set)
+                        q_out = f"/tmp/gpu_q_{n}_{k}_out.txt"
                         qcmd = [
                             str(FQ_BIN), "quench",
-                            "--in", q_in,
+                            "--in", cfile,
                             "--out", q_out,
-                            "--loosen", "1.0000",
-                            "--round-r0", "0.03",
+                            "--loosen", "1.0005",
+                            "--round-r0", "0.02",
                             "--round-compress",
-                            "--round-steps", "25"
+                            "--round-steps", "30"
                         ]
-                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=40)
+                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=30)
                         if qres.returncode == 0 and os.path.exists(q_out):
                             q_side, q_coords = read_engine_config(q_out)
                             if q_side < cur_s - 1e-10:
@@ -152,15 +175,21 @@ def run_gpu_continuous():
                                 if val["valid"] and val["side"] < cur_s - 1e-10:
                                     success, gain, msg = reg.register_candidate(n, q_coords, source=f"mi300x_gpu_chain{k}")
                                     if success:
-                                        new_score = reg.get_score()
-                                        log(f"[+] [GPU MI300X BREAKTHROUGH] N={n} IMPROVED! side: {cur_s:.8f} -> {val['side']:.8f} (gain={gain:.8f}) | Score: {new_score:.12f}")
-                                        reg.save_submission()
-                                        cur_s = val["side"]
-                        for f in [q_in, q_out]:
-                            if os.path.exists(f): os.remove(f)
-                        os.remove(cfile)
-                    except Exception:
-                        pass
+                                      log(
+                                          "[+] [GPU MI300X BREAKTHROUGH] N="
+                                          f"{n} IMPROVED! side: {cur_s:.8f} ->"
+                                          f" {val['side']:.8f}"
+                                          f" (gain={gain:.8f}) | Score:"
+                                          f" {reg.get_score():.12f}"
+                                      )
+                                      reg.save_submission()
+                                      cur_s = val["side"]
+                        if os.path.exists(q_out):
+                            os.remove(q_out)
+                        if os.path.exists(cfile):
+                            os.remove(cfile)
+                    except Exception as err:
+                        log(f"[!] Error processing candidate N={n} chain {k}: {err}")
 
 
 if __name__ == "__main__":

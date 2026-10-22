@@ -1,7 +1,7 @@
 {
-  "total_score": 22.46508797696875,
-  "last_updated": "2026-10-22 19:15:33",
-  "last_improved_n": 446,
-  "last_gain": 1.977219730565546e-08,
-  "last_source": "fq_strat0_seed1000"
+  "total_score": 22.4650650796876,
+  "last_updated": "2026-10-22 20:23:53",
+  "last_improved_n": 923,
+  "last_gain": 8.081094628806078e-05,
+  "last_source": "subset_drop_from_924"
 }

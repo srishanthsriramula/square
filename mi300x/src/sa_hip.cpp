@@ -384,17 +384,38 @@ static bool load_cfg(const char *path, std::vector<float> &z, int &n, double &s)
     if (!f) return false;
     char line[512];
     n = 0; s = 0;
+    bool is_deg = false;
     while (fgets(line, sizeof line, f)) {
-        if (line[0] == '#') {
-            const char *p = strstr(line, "n =");
-            if (p) n = atoi(p + 3);
-            p = strstr(line, "s =");
-            if (p) s = atof(p + 3);
+        char *p = line;
+        while (*p == ' ' || *p == '\t') p++;
+        if (*p == '\0' || *p == '\n') continue;
+        if (*p == '#') {
+            const char *pn = strstr(p, "n =");
+            if (pn) n = atoi(pn + 3);
+            const char *ps = strstr(p, "s =");
+            if (ps) s = atof(ps + 3);
             continue;
         }
+        if (n == 0) {
+            int tn = 0;
+            double ts = 0;
+            if (sscanf(p, "%d %lf", &tn, &ts) == 2) {
+                if (tn >= 1 && tn <= 5000 && ts > 0) {
+                    n = tn;
+                    s = ts;
+                    is_deg = true;
+                    continue;
+                }
+            }
+        }
         double a, b, c;
-        if (sscanf(line, "%lf %lf %lf", &a, &b, &c) == 3) {
-            z.push_back((float)a); z.push_back((float)b); z.push_back((float)c);
+        if (sscanf(p, "%lf %lf %lf", &a, &b, &c) == 3) {
+            z.push_back((float)a);
+            z.push_back((float)b);
+            if (is_deg) {
+                c = c * (3.14159265358979323846 / 180.0);
+            }
+            z.push_back((float)c);
         }
     }
     fclose(f);
@@ -512,9 +533,13 @@ int main(int argc, char **argv) {
             char path[512];
             snprintf(path, sizeof path, "%s.%d.txt", out, k);
             FILE *f = fopen(path, "w");
-            fprintf(f, "# n = %d\n# s = %.9f\n# x y theta(rad)\n", n, b[2 * i]);
-            for (int j = 0; j < n; j++)
-                fprintf(f, "%.9g %.9g %.9g\n", hx[j], hy[j], ht[j]);
+            fprintf(f, "%d %.17g\n", n, (double)b[2 * i]);
+            for (int j = 0; j < n; j++) {
+                double rad = (double)ht[j];
+                double deg = fmod(rad * (180.0 / 3.14159265358979323846), 90.0);
+                if (deg < 0.0) deg += 90.0;
+                fprintf(f, "%.17g %.17g %.15g\n", (double)hx[j], (double)hy[j], deg);
+            }
             fclose(f);
         }
         printf("wrote %d candidates to %s.*.txt\n", std::min(keep, inst), out);
