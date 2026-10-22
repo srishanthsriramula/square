@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQUARES IN SQUARES // MI300X RESEARCH DASHBOARD</title>
+    <title>SQUARES IN SQUARES // MI300X NEURAL & GEOMETRIC RESEARCH COCKPIT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #08090c;
-            --bg-card: rgba(18, 20, 26, 0.75);
-            --bg-card-hover: rgba(26, 29, 38, 0.85);
+            --bg-base: #000000;
+            --bg-card: rgba(10, 12, 16, 0.75);
+            --bg-card-hover: rgba(16, 20, 28, 0.9);
             --border: rgba(255, 255, 255, 0.08);
-            --border-glow: rgba(0, 242, 254, 0.3);
-            --accent-cyan: #00f2fe;
-            --accent-blue: #4facfe;
-            --accent-emerald: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-purple: #8b5cf6;
-            --accent-rose: #f43f5e;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --border-glow: rgba(0, 240, 255, 0.25);
+            --accent-cyan: #00f0ff;
+            --accent-cyan-dim: rgba(0, 240, 255, 0.15);
+            --accent-emerald: #00ff88;
+            --accent-emerald-dim: rgba(0, 255, 136, 0.15);
+            --accent-amber: #ffb800;
+            --accent-purple: #9d4edd;
+            --text-primary: #ffffff;
+            --text-secondary: #8e9cae;
+            --text-muted: #4e5b6e;
+            --card-radius: 12px;
         }
 
         * {
@@ -34,24 +35,24 @@
         body {
             background-color: var(--bg-base);
             color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.04) 0%, transparent 40%);
+                radial-gradient(circle at 10% 0%, rgba(0, 240, 255, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 90% 100%, rgba(157, 78, 221, 0.05) 0%, transparent 45%);
         }
 
-        /* Top Navigation Bar */
+        /* Top Bar */
         header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 2rem;
-            background: rgba(10, 11, 15, 0.85);
-            backdrop-filter: blur(16px);
+            padding: 0.85rem 2rem;
+            background: rgba(4, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
@@ -61,74 +62,85 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .brand-logo {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00f0ff, #7928ca);
+            border-radius: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 16px var(--border-glow);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
         }
 
         .brand-logo svg {
-            width: 18px;
-            height: 18px;
-            fill: #fff;
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
         }
 
         .brand-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
 
-        .brand-title span {
-            color: var(--accent-cyan);
+        .brand-title .badge {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            padding: 2px 6px;
-            background: rgba(0, 242, 254, 0.1);
-            border: 1px solid rgba(0, 242, 254, 0.3);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.1);
+            padding: 2px 7px;
             border-radius: 4px;
+            border: 1px solid rgba(0, 240, 255, 0.25);
         }
 
-        .nav-tabs {
+        .brand-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hardware-strip {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(14, 18, 26, 0.6);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+        }
+
+        .hw-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
         }
 
-        .nav-tab {
-            padding: 6px 14px;
-            font-size: 0.85rem;
+        .hw-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.68rem;
+        }
+
+        .hw-val {
+            color: var(--accent-cyan);
             font-weight: 600;
-            color: var(--text-secondary);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-
-        .nav-tab.active, .nav-tab:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-tab.active {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .status-pill {
@@ -136,669 +148,842 @@
             align-items: center;
             gap: 0.5rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            padding: 6px 12px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 0.78rem;
+            padding: 5px 12px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
             border-radius: 20px;
             color: var(--accent-emerald);
         }
 
         .pulse-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: var(--accent-emerald);
-            box-shadow: 0 0 8px var(--accent-emerald);
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--accent-emerald);
+            animation: pulse 1.8s infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
         }
 
-        /* Main Container */
+        /* Layout */
         main {
             flex: 1;
-            padding: 2rem;
-            max-width: 1600px;
+            padding: 1.5rem 2rem 2rem 2rem;
+            max-width: 1720px;
             margin: 0 auto;
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
-        /* Hero Stats Grid */
-        .stats-grid {
+        /* Metrics Hero Row */
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 1.25rem;
         }
 
-        .stat-card {
+        .metric-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
-            backdrop-filter: blur(12px);
-            transition: all 0.25s ease;
+            border-radius: var(--card-radius);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: all 0.2s ease;
         }
 
-        .stat-card:hover {
-            border-color: rgba(255, 255, 255, 0.18);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        .metric-card:hover {
+            border-color: rgba(0, 240, 255, 0.25);
+            background: var(--bg-card-hover);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--card-accent, var(--accent-cyan)), transparent);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
+        .metric-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .stat-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            color: #fff;
-            margin-bottom: 0.35rem;
+        .metric-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
         }
 
-        .stat-delta {
-            font-size: 0.85rem;
+        .metric-icon {
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+        }
+
+        .metric-val {
             font-family: 'JetBrains Mono', monospace;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .metric-sub {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.5rem;
+            font-size: 0.76rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
         }
 
-        .stat-delta.positive { color: var(--accent-emerald); }
-        .stat-delta.neutral { color: var(--accent-cyan); }
-        .stat-delta.warning { color: var(--accent-amber); }
+        .metric-delta {
+            color: var(--accent-emerald);
+            font-weight: 600;
+        }
 
-        /* Workspace Grid (Visualizer + Control Panel) */
-        .workspace-grid {
+        /* Dual Main Panel: Visualization + Live Terminal */
+        .workbench-grid {
             display: grid;
-            grid-template-columns: 1fr 420px;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 1.5rem;
+            min-height: 620px;
         }
 
-        @media (max-width: 1200px) {
-            .workspace-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
+        /* Visualizer Box */
+        .card-panel {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            overflow: hidden;
+            border-radius: var(--card-radius);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
         }
 
         .panel-header {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: rgba(14, 17, 24, 0.7);
+            border-bottom: 1px solid var(--border);
         }
 
         .panel-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .canvas-container {
-            flex: 1;
-            min-height: 580px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #050608;
-            position: relative;
-            padding: 1rem;
-        }
-
-        canvas {
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-            background: #0a0b0f;
-        }
-
-        .canvas-toolbar {
-            position: absolute;
-            bottom: 1.5rem;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            background: rgba(18, 20, 26, 0.9);
-            padding: 6px 14px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
-        .tool-btn {
+        .panel-title svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--accent-cyan);
+        }
+
+        .vis-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            padding: 5px 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: rgba(0, 240, 255, 0.35);
+            color: var(--accent-cyan);
+        }
+
+        .btn.active {
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-cyan);
+        }
+
+        .instance-input-group {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .instance-input-group input {
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 5px 9px;
+            width: 70px;
+            text-align: center;
+            outline: none;
         }
 
-        .tool-btn.active, .tool-btn:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
+        /* Canvas Container */
+        .canvas-wrap {
+            flex: 1;
+            position: relative;
+            background: #020305;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 480px;
         }
 
-        /* Sidebar Controls */
-        .sidebar-content {
-            padding: 1.5rem;
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Floating HUD over Canvas */
+        .canvas-hud {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(8, 10, 15, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            overflow-y: auto;
-            max-height: 650px;
+            gap: 3px;
+            pointer-events: none;
         }
 
-        .form-group {
+        .hud-line {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            align-items: center;
+            gap: 8px;
         }
 
-        .form-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+        .hud-lbl { color: var(--text-muted); }
+        .hud-val { color: var(--accent-cyan); font-weight: 600; }
 
-        .input-row {
+        /* Landmark Bar */
+        .landmark-bar {
+            padding: 0.75rem 1.25rem;
+            background: rgba(8, 10, 15, 0.6);
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            overflow-x: auto;
         }
 
-        input[type="number"], select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #fff;
+        .landmark-lbl {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            outline: none;
-            flex: 1;
+            margin-right: 0.5rem;
+            white-space: nowrap;
         }
 
-        input[type="number"]:focus, select:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
-        }
-
-        .quick-chips {
+        /* Live Terminal Box */
+        .terminal-wrap {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-        }
-
-        .chip {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-        }
-
-        .chip:hover, .chip.active {
-            color: var(--accent-cyan);
-            border-color: var(--accent-cyan);
-            background: rgba(0, 242, 254, 0.08);
-        }
-
-        .metrics-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
+            flex-direction: column;
+            flex: 1;
+            background: #020305;
+            overflow: hidden;
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .metrics-table tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .metrics-table td {
-            padding: 8px 0;
-            color: var(--text-secondary);
-        }
-
-        .metrics-table td:last-child {
-            text-align: right;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        /* Real-Time Event Log */
-        .log-box {
-            background: #060709;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            max-height: 180px;
+        .terminal-body {
+            flex: 1;
+            padding: 1rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #d1d5db;
+            max-height: 520px;
+            background: #020306;
         }
 
-        .log-entry {
+        .terminal-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            word-break: break-all;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .log-gpu { color: #00f0ff; }
+        .log-gain { color: #00ff88; font-weight: 700; background: rgba(0, 255, 136, 0.1); padding: 1px 4px; border-radius: 3px; }
+        .log-warn { color: #ffb800; }
+        .log-info { color: #94a3b8; }
+
+        .terminal-footer {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            background: rgba(12, 14, 20, 0.85);
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
             color: var(--text-muted);
         }
 
-        .log-time { color: var(--accent-cyan); }
-        .log-msg { color: var(--text-secondary); }
-        .log-highlight { color: var(--accent-emerald); }
+        .stream-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-emerald);
+        }
 
-        /* Full Landscape Chart Section */
-        .chart-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
+        .stream-indicator.paused {
+            color: var(--accent-amber);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .workbench-grid {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
+
     <header>
         <div class="brand">
             <div class="brand-logo">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#fff" stroke-width="2"/><rect x="7" y="7" width="10" height="10" rx="1" fill="#fff"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
             </div>
-            <div class="brand-title">
-                SQUARES IN SQUARES <span>RESEARCH V2</span>
+            <div class="brand-meta">
+                <div class="brand-title">
+                    SQUARES // RESEARCH COCKPIT
+                    <span class="badge">CDNA3 + XEON</span>
+                </div>
+                <div class="brand-sub">AMD INSTINCT MI300X 192GB HBM3 &bull; PARALLEL ACTIVE-SET ENGINE</div>
             </div>
         </div>
 
-        <nav class="nav-tabs">
-            <a href="#overview" class="nav-tab active">Overview</a>
-            <a href="#visualizer" class="nav-tab">2D Visualizer</a>
-            <a href="#frontier" class="nav-tab">Grid Frontier</a>
-            <a href="#gpu" class="nav-tab">MI300X Hardware</a>
-        </nav>
-
-        <div class="status-pill">
-            <div class="pulse-dot"></div>
-            <span>ROCm // MI300X ACTIVE</span>
+        <div class="hardware-strip">
+            <div class="hw-item">
+                <span class="hw-label">GPU:</span>
+                <span class="hw-val" id="gpu-name">MI300X (192GB)</span>
+            </div>
+            <div class="hw-item">
+                <span class="hw-label">VRAM:</span>
+                <span class="hw-val" id="gpu-vram">192 GB</span>
+            </div>
+            <div class="hw-item">
+                <span class="hw-label">CPU:</span>
+                <span class="hw-val" id="cpu-load">20-Core Xeon (Load: 1.2)</span>
+            </div>
+            <div class="hw-item">
+                <span class="hw-label">RAM:</span>
+                <span class="hw-val" id="sys-mem">18.4 / 235 GB</span>
+            </div>
+            <div class="status-pill">
+                <div class="pulse-dot"></div>
+                <span id="sys-status">ACTIVE CLUSTER</span>
+            </div>
         </div>
     </header>
 
     <main>
-        <!-- Hero KPI Cards -->
-        <div class="stats-grid">
-            <div class="stat-card" style="--card-accent: var(--accent-cyan);">
-                <div class="stat-label">
-                    <span>Certified Total Score</span>
-                    <span>Σ (L/√N - 1)</span>
+        <!-- Hero Metrics Row -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Verified World Record Score</span>
+                    <span class="metric-icon">&#x26A1;</span>
                 </div>
-                <div class="stat-value" id="kpi-score">22.475412</div>
-                <div class="stat-delta positive">
-                    <span>▼ -0.001834 vs baseline (63 records)</span>
-                </div>
-            </div>
-
-            <div class="stat-card" style="--card-accent: var(--accent-purple);">
-                <div class="stat-label">
-                    <span>Research Goal</span>
-                    <span>Target</span>
-                </div>
-                <div class="stat-value" style="color: var(--accent-purple);">15.000000</div>
-                <div class="stat-delta neutral">
-                    <span>Milestone 1: Sub-22.0 in progress</span>
+                <div class="metric-val" id="cur-score">22.4754119968</div>
+                <div class="metric-sub">
+                    <span>Baseline: 22.47724589</span>
+                    <span class="metric-delta" id="gain-pct">+0.00183390</span>
                 </div>
             </div>
 
-            <div class="stat-card" style="--card-accent: var(--accent-emerald);">
-                <div class="stat-label">
-                    <span>High-Deficit Grid Pool</span>
-                    <span>Cracking Goldmine</span>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Distance To Sub-15 Target</span>
+                    <span class="metric-icon">&#x25CE;</span>
                 </div>
-                <div class="stat-value" id="kpi-grid-pool">184</div>
-                <div class="stat-delta positive">
-                    <span>Potential Gain: +1.2 to 1.8 pts</span>
+                <div class="metric-val" id="sub15-dist">7.475412</div>
+                <div class="metric-sub">
+                    <span>Target: 15.00000000</span>
+                    <span style="color: var(--accent-cyan);">Milestone 1</span>
                 </div>
             </div>
 
-            <div class="stat-card" style="--card-accent: var(--accent-amber);">
-                <div class="stat-label">
-                    <span>AMD Instinct MI300X</span>
-                    <span>CDNA3 750W</span>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Certified Improved Instances</span>
+                    <span class="metric-icon">&#x2714;</span>
                 </div>
-                <div class="stat-value" style="color: var(--accent-amber);">19,456</div>
-                <div class="stat-delta warning">
-                    <span>304 CUs // 192GB HBM3 Active</span>
+                <div class="metric-val" id="improved-count">63 / 1000</div>
+                <div class="metric-sub">
+                    <span>Double-Precision SAT: </span>
+                    <span style="color: var(--accent-emerald);">0 Overlaps (1e-10)</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">K(K+1) Tail Grid Deficit Pool</span>
+                    <span class="metric-icon">&#x229E;</span>
+                </div>
+                <div class="metric-val" id="grid-pool">184 / 457</div>
+                <div class="metric-sub">
+                    <span>Opportunity: </span>
+                    <span style="color: var(--accent-amber);">~1.8 Score Points</span>
                 </div>
             </div>
         </div>
 
-        <!-- Visualizer & Control Grid -->
-        <div class="workspace-grid" id="visualizer">
-            <div class="panel">
+        <!-- Workbench Grid: Canvas on Left, Live Telemetry Stream on Right -->
+        <div class="workbench-grid">
+            
+            <!-- Left: High Precision 2D Visualizer -->
+            <div class="card-panel">
                 <div class="panel-header">
                     <div class="panel-title">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        <span>Pack Visualizer // Exact Separating-Axis Layout</span>
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6z"/></svg>
+                        <span>2D Rotated Square Packing Visualizer &bull; N=<span id="vis-n">998</span></span>
                     </div>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted);" id="current-pack-tag">
-                        Instance N=55
+                    <div class="vis-controls">
+                        <button class="btn" onclick="prevInstance()">&larr; Prev</button>
+                        <div class="instance-input-group">
+                            <input type="number" id="target-n-input" value="998" min="1" max="1000" onchange="jumpToInstance(this.value)">
+                        </div>
+                        <button class="btn" onclick="nextInstance()">Next &rarr;</button>
+                        <button class="btn" onclick="resetZoom()">Reset View</button>
                     </div>
                 </div>
 
-                <div class="canvas-container">
-                    <canvas id="packCanvas" width="560" height="560"></canvas>
-                    <div class="canvas-toolbar">
-                        <button class="tool-btn active" id="btn-toggle-tilted">Highlight Tilted</button>
-                        <button class="tool-btn" id="btn-toggle-voids">Show Voids</button>
-                        <button class="tool-btn" id="btn-reset-view">Reset View</button>
+                <div class="canvas-wrap" id="canvas-container">
+                    <canvas id="pack-canvas"></canvas>
+                    <div class="canvas-hud">
+                        <div class="hud-line"><span class="hud-lbl">ENCLOSING SIDE L:</span> <span class="hud-val" id="hud-side">31.99687592</span></div>
+                        <div class="hud-line"><span class="hud-lbl">THEORETICAL BOUND:</span> <span class="hud-val" id="hud-sqrt">31.59113799</span></div>
+                        <div class="hud-line"><span class="hud-lbl">PACKING DENSITY:</span> <span class="hud-val" id="hud-dens">97.48%</span></div>
+                        <div class="hud-line"><span class="hud-lbl">TILTED CRYSTALS:</span> <span class="hud-val" id="hud-tilted">378 squares</span></div>
+                        <div class="hud-line" id="hover-line" style="display:none;"><span class="hud-lbl">HOVER SQUARE:</span> <span class="hud-val" id="hud-hover">-</span></div>
                     </div>
+                </div>
+
+                <div class="landmark-bar">
+                    <span class="landmark-lbl">LANDMARK INSTANCES:</span>
+                    <button class="btn" onclick="jumpToInstance(55)">N=55 (Record 7.999)</button>
+                    <button class="btn" onclick="jumpToInstance(56)">N=56 (Grid 8.0)</button>
+                    <button class="btn" onclick="jumpToInstance(110)">N=110 (Grid 11.0)</button>
+                    <button class="btn" onclick="jumpToInstance(801)">N=801 (Grid 29.0)</button>
+                    <button class="btn" onclick="jumpToInstance(925)">N=925 (Giant Leap)</button>
+                    <button class="btn" onclick="jumpToInstance(935)">N=935 (30.994)</button>
+                    <button class="btn" onclick="jumpToInstance(936)">N=936 (Grid 31.0)</button>
+                    <button class="btn" onclick="jumpToInstance(988)">N=988 (Record 31.926)</button>
+                    <button class="btn" onclick="jumpToInstance(998)">N=998 (Record 31.996)</button>
+                    <button class="btn" onclick="jumpToInstance(999)">N=999 (Grid Target)</button>
+                    <button class="btn" onclick="jumpToInstance(1000)">N=1000 (Grid Target)</button>
                 </div>
             </div>
 
-            <div class="panel">
+            <!-- Right: Real-Time Streaming Console -->
+            <div class="card-panel">
                 <div class="panel-header">
-                    <div class="panel-title">Instance Controls & Geometry</div>
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10zm-2-1h-4v-2h4v2zm-6-4.5l-3.5 3.5-1.42-1.42L9.66 12 7.08 9.42 8.5 8l4.5 4.5z"/></svg>
+                        <span>LIVE ENGINE STREAM // ROCm &amp; CPU TELEMETRY</span>
+                    </div>
+                    <div class="vis-controls">
+                        <button class="btn" id="btn-toggle-stream" onclick="toggleStream()">Pause Stream</button>
+                        <button class="btn" onclick="clearTerminal()">Clear</button>
+                    </div>
                 </div>
-                <div class="sidebar-content">
-                    <div class="form-group">
-                        <label class="form-label">Select Instance N (1 to 1000)</label>
-                        <div class="input-row">
-                            <input type="number" id="input-n" min="1" max="1000" value="55">
-                            <button class="chip active" id="btn-load-n" style="padding: 8px 14px;">Load</button>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Breakthrough Landmarks</label>
-                        <div class="quick-chips">
-                            <div class="chip" onclick="selectInstance(55)">N=55 (Record)</div>
-                            <div class="chip" onclick="selectInstance(56)">N=56 (Grid Wall)</div>
-                            <div class="chip" onclick="selectInstance(110)">N=110</div>
-                            <div class="chip" onclick="selectInstance(801)">N=801 (GPU Seed)</div>
-                            <div class="chip" onclick="selectInstance(935)">N=935</div>
-                            <div class="chip" onclick="selectInstance(936)">N=936 (Deficit 25)</div>
-                            <div class="chip" onclick="selectInstance(988)">N=988 (Record)</div>
-                            <div class="chip" onclick="selectInstance(998)">N=998 (Record)</div>
-                            <div class="chip" onclick="selectInstance(999)">N=999 (Grid Wall)</div>
-                        </div>
+                <div class="terminal-wrap">
+                    <div class="terminal-body" id="term-body">
+                        <!-- Populated dynamically via SSE stream -->
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Geometric Metrics</label>
-                        <table class="metrics-table">
-                            <tr>
-                                <td>Container Side L</td>
-                                <td id="metric-side">7.94577101</td>
-                            </tr>
-                            <tr>
-                                <td>Score Contribution</td>
-                                <td id="metric-score">0.071408</td>
-                            </tr>
-                            <tr>
-                                <td>Packing Density</td>
-                                <td id="metric-density">87.11%</td>
-                            </tr>
-                            <tr>
-                                <td>Theoretical Bound √N</td>
-                                <td id="metric-bound">7.416198</td>
-                            </tr>
-                            <tr>
-                                <td>Tilted Crystals</td>
-                                <td id="metric-tilted">18 squares</td>
-                            </tr>
-                            <tr>
-                                <td>Integer Grid Barrier</td>
-                                <td id="metric-grid-wall">8.000000</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Live Event Stream</label>
-                        <div class="log-box" id="log-box">
-                            <div class="log-entry"><span class="log-time">[22:28:55]</span> <span class="log-msg">SSH link established to 129.212.178.6</span></div>
-                            <div class="log-entry"><span class="log-time">[22:29:04]</span> <span class="log-highlight">AMD Instinct MI300X Detected (37°C, 750W cap)</span></div>
-                            <div class="log-entry"><span class="log-time">[22:32:36]</span> <span class="log-msg">ROCm packages, cargo & rustc initialized</span></div>
-                            <div class="log-entry"><span class="log-time">[22:34:00]</span> <span class="log-highlight">Dashboard port 3000 online & bound to 0.0.0.0</span></div>
+                    <div class="terminal-footer">
+                        <div class="stream-indicator" id="stream-status">
+                            <span class="pulse-dot"></span>
+                            <span>SSE TELEMETRY LINK LIVE (200ms)</span>
                         </div>
+                        <div id="term-line-count">0 events</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Frontier Landscape Chart -->
-        <div class="chart-section" id="frontier">
-            <div class="panel-header" style="border: none; padding: 0 0 1rem 0;">
-                <div class="panel-title">
-                    <span>The K(K+1) Tail Cliff // Unexplored High-Deficit Grid Opportunities</span>
-                </div>
-                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent-emerald);">
-                    424 Grid Tail Instances = 6.789971 points
-                </div>
-            </div>
-            <div style="height: 180px; width: 100%; background: #050608; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-end; padding: 10px; gap: 2px;" id="cliff-bar-container">
-                <!-- Bars dynamically rendered via JS -->
-            </div>
         </div>
     </main>
 
     <script>
-        let currentInstanceData = null;
-        let showTilted = true;
-        let showVoids = false;
+        // State
+        let currentN = 998;
+        let packingData = null;
+        let scale = 1.0;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let streamPaused = false;
+        let eventSource = null;
+        let hoveredSquare = null;
+
+        const canvas = document.getElementById("pack-canvas");
+        const ctx = canvas.getContext("2d");
+        const container = document.getElementById("canvas-container");
+        const termBody = document.getElementById("term-body");
+
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+            drawPacking();
+        }
+        window.addEventListener("resize", resizeCanvas);
 
         async function fetchMetrics() {
             try {
-                const res = await fetch('/api/metrics');
-                const data = await res.json();
-                document.getElementById('kpi-score').textContent = data.current_score.toFixed(6);
-            } catch (e) {
-                console.error("Metrics fetch error:", e);
-            }
+                const res = await fetch("/api/metrics");
+                const d = await res.json();
+                document.getElementById("cur-score").innerText = d.current_score.toFixed(10);
+                document.getElementById("gain-pct").innerText = `+${d.total_gain.toFixed(8)} pts`;
+                document.getElementById("sub15-dist").innerText = (d.current_score - 15.0).toFixed(6);
+                document.getElementById("improved-count").innerText = `${d.improved_instances} / 1000`;
+                document.getElementById("grid-pool").innerText = `${d.grid_instances} instances`;
+
+                if (d.gpu) {
+                    document.getElementById("gpu-name").innerText = `${d.gpu.type}`;
+                    document.getElementById("gpu-vram").innerText = `${d.gpu.vram_total_gb} GB HBM3`;
+                }
+                if (d.system) {
+                    document.getElementById("cpu-load").innerText = `Xeon Load: ${d.system.cpu_load.toFixed(1)}`;
+                    document.getElementById("sys-mem").innerText = `${d.system.mem_used_gb} / ${d.system.mem_total_gb} GB`;
+                }
+            } catch (e) {}
         }
 
         async function loadInstance(n) {
+            currentN = n;
+            document.getElementById("vis-n").innerText = n;
+            document.getElementById("target-n-input").value = n;
+
             try {
                 const res = await fetch(`/api/instance/${n}`);
-                const data = await res.json();
-                if (data.error) {
-                    alert(data.error);
-                    return;
+                const d = await res.json();
+                if (d.error) return;
+                packingData = d;
+                document.getElementById("hud-side").innerText = d.side.toFixed(8);
+                document.getElementById("hud-sqrt").innerText = d.sqrt_n.toFixed(8);
+                document.getElementById("hud-dens").innerText = `${(d.density * 100).toFixed(2)}%`;
+
+                let tilted = 0;
+                for (const sq of d.squares) {
+                    const deg = (sq.angle * 180 / Math.PI) % 90;
+                    if (Math.abs(deg) > 0.5 && Math.abs(deg - 90) > 0.5) tilted++;
                 }
-                currentInstanceData = data;
-                updateMetrics(data);
-                renderPacking(data);
-            } catch (e) {
-                console.error("Instance load error:", e);
-            }
+                document.getElementById("hud-tilted").innerText = `${tilted} / ${d.count} squares`;
+                resetZoom();
+            } catch (e) {}
         }
 
-        function updateMetrics(data) {
-            document.getElementById('current-pack-tag').textContent = `Instance N=${data.n}`;
-            document.getElementById('metric-side').textContent = data.side.toFixed(8);
-            document.getElementById('metric-score').textContent = data.score_n.toFixed(6);
-            document.getElementById('metric-density').textContent = (data.density * 100).toFixed(2) + '%';
-            document.getElementById('metric-bound').textContent = data.sqrt_n.toFixed(6);
-            
-            // Count tilted
-            let tilted = 0;
-            data.squares.forEach(sq => {
-                if (Math.abs(Math.sin(2 * sq.angle)) > 0.05) tilted++;
-            });
-            document.getElementById('metric-tilted').textContent = `${tilted} / ${data.n} squares`;
-            document.getElementById('metric-grid-wall').textContent = Math.ceil(data.sqrt_n).toFixed(6);
+        function resetZoom() {
+            if (!packingData) return;
+            const rect = container.getBoundingClientRect();
+            const pad = 40;
+            const w = rect.width - pad * 2;
+            const h = rect.height - pad * 2;
+            const baseSide = packingData.side;
+            scale = Math.min(w / baseSide, h / baseSide);
+            panX = (rect.width - baseSide * scale) / 2;
+            panY = (rect.height - baseSide * scale) / 2;
+            drawPacking();
         }
 
-        function renderPacking(data) {
-            const canvas = document.getElementById('packCanvas');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
+        function drawPacking() {
+            const dpr = window.devicePixelRatio;
+            ctx.save();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(dpr, dpr);
 
-            ctx.clearRect(0, 0, width, height);
-
-            const padding = 40;
-            const drawSize = width - 2 * padding;
-            const scale = drawSize / data.side;
-
-            // Draw enclosing square container
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(padding, padding, drawSize, drawSize);
-
-            // Subtle container grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            const gridStep = Math.max(1, Math.floor(data.side / 10));
-            for (let g = gridStep; g < data.side; g += gridStep) {
-                ctx.beginPath();
-                ctx.moveTo(padding + g * scale, padding);
-                ctx.lineTo(padding + g * scale, padding + drawSize);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(padding, padding + g * scale);
-                ctx.lineTo(padding + drawSize, padding + g * scale);
-                ctx.stroke();
+            if (!packingData) {
+                ctx.restore();
+                return;
             }
 
-            // Draw unit squares
-            data.squares.forEach((sq, i) => {
-                const cx = padding + sq.x * scale;
-                const cy = padding + (data.side - sq.y) * scale; // Flip Y for standard canvas
-                const rad = -sq.angle; // Adjust rotation direction
+            const L = packingData.side;
 
-                const isTilted = Math.abs(Math.sin(2 * sq.angle)) > 0.05;
+            // Draw bounding box
+            const bx = panX;
+            const by = panY;
+            const bw = L * scale;
+            const bh = L * scale;
+
+            // Outer box glow
+            ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(bx, by, bw, bh);
+
+            ctx.fillStyle = "rgba(6, 9, 15, 0.5)";
+            ctx.fillRect(bx, by, bw, bh);
+
+            // Draw each square
+            for (let i = 0; i < packingData.squares.length; i++) {
+                const sq = packingData.squares[i];
+                const cx = bx + sq.x * scale;
+                const cy = by + (L - sq.y) * scale; // Invert Y for Cartesian
+                const deg = Math.abs((sq.angle * 180 / Math.PI) % 90);
+                const isTilted = deg > 0.5 && Math.abs(deg - 90) > 0.5;
 
                 ctx.save();
                 ctx.translate(cx, cy);
-                ctx.rotate(rad);
+                ctx.rotate(-sq.angle);
 
-                const s = scale; // unit square side length in canvas pixels
+                const s = scale; // side length = 1.0 unit * scale
                 const hs = s / 2;
 
-                if (isTilted && showTilted) {
-                    ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
-                    ctx.strokeStyle = '#f59e0b';
+                if (i === hoveredSquare) {
+                    ctx.fillStyle = "rgba(255, 230, 0, 0.6)";
+                    ctx.strokeStyle = "#fffb00";
+                    ctx.lineWidth = 2.0;
+                } else if (isTilted) {
+                    ctx.fillStyle = "rgba(0, 240, 255, 0.22)";
+                    ctx.strokeStyle = "rgba(0, 240, 255, 0.75)";
+                    ctx.lineWidth = 1.0;
                 } else {
-                    ctx.fillStyle = 'rgba(0, 242, 254, 0.2)';
-                    ctx.strokeStyle = '#00f2fe';
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+                    ctx.lineWidth = 0.8;
                 }
 
-                ctx.lineWidth = 1.2;
                 ctx.fillRect(-hs, -hs, s, s);
                 ctx.strokeRect(-hs, -hs, s, s);
 
-                // Small center pip
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(-1.5, -1.5, 3, 3);
+                // Heading tick
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(hs * 0.7, 0);
+                ctx.strokeStyle = isTilted ? "rgba(0, 240, 255, 0.6)" : "rgba(255, 255, 255, 0.3)";
+                ctx.lineWidth = 1;
+                ctx.stroke();
 
                 ctx.restore();
-            });
+            }
+
+            ctx.restore();
         }
 
-        function selectInstance(n) {
-            document.getElementById('input-n').value = n;
-            loadInstance(n);
-        }
+        // Mouse Controls
+        container.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            dragStartX = e.clientX - panX;
+            dragStartY = e.clientY - panY;
+        });
 
-        // Setup event listeners
-        document.getElementById('btn-load-n').addEventListener('click', () => {
-            const n = parseInt(document.getElementById('input-n').value);
+        window.addEventListener("mouseup", () => isDragging = false);
+
+        container.addEventListener("mousemove", (e) => {
+            if (isDragging) {
+                panX = e.clientX - dragStartX;
+                panY = e.clientY - dragStartY;
+                drawPacking();
+                return;
+            }
+
+            // Square hover inspection
+            if (!packingData) return;
+            const rect = container.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const L = packingData.side;
+
+            let found = -1;
+            for (let i = packingData.squares.length - 1; i >= 0; i--) {
+                const sq = packingData.squares[i];
+                const cx = panX + sq.x * scale;
+                const cy = panY + (L - sq.y) * scale;
+                const dx = mx - cx;
+                const dy = my - cy;
+                const r = Math.sqrt(dx * dx + dy * dy);
+                if (r <= (scale * 0.7)) {
+                    found = i;
+                    break;
+                }
+            }
+
+            if (found !== hoveredSquare) {
+                hoveredSquare = found;
+                const hoverLine = document.getElementById("hover-line");
+                if (found >= 0) {
+                    const sq = packingData.squares[found];
+                    const deg = (sq.angle * 180 / Math.PI).toFixed(1);
+                    document.getElementById("hud-hover").innerText = `#${found} (x=${sq.x.toFixed(3)}, y=${sq.y.toFixed(3)}, θ=${deg}°)`;
+                    hoverLine.style.display = "flex";
+                } else {
+                    hoverLine.style.display = "none";
+                }
+                drawPacking();
+            }
+        });
+
+        container.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            panX = mouseX - (mouseX - panX) * zoomFactor;
+            panY = mouseY - (mouseY - panY) * zoomFactor;
+            scale *= zoomFactor;
+            drawPacking();
+        }, { passive: false });
+
+        function jumpToInstance(n) {
+            n = parseInt(n);
             if (n >= 1 && n <= 1000) loadInstance(n);
-        });
+        }
 
-        document.getElementById('btn-toggle-tilted').addEventListener('click', (e) => {
-            showTilted = !showTilted;
-            e.target.classList.toggle('active', showTilted);
-            if (currentInstanceData) renderPacking(currentInstanceData);
-        });
+        function prevInstance() {
+            if (currentN > 1) jumpToInstance(currentN - 1);
+        }
 
-        document.getElementById('btn-toggle-voids').addEventListener('click', (e) => {
-            showVoids = !showVoids;
-            e.target.classList.toggle('active', showVoids);
-            if (currentInstanceData) renderPacking(currentInstanceData);
-        });
+        function nextInstance() {
+            if (currentN < 1000) jumpToInstance(currentN + 1);
+        }
 
-        document.getElementById('btn-reset-view').addEventListener('click', () => {
-            if (currentInstanceData) renderPacking(currentInstanceData);
-        });
+        // Real-Time Terminal & SSE Stream
+        function initSSE() {
+            if (eventSource) eventSource.close();
+            eventSource = new EventSource("/api/logs/stream");
 
-        // Initialize Cliff bars
-        function renderCliffBars() {
-            const container = document.getElementById('cliff-bar-container');
-            container.innerHTML = '';
-            for (let k = 2; k <= 31; k++) {
-                const bar = document.createElement('div');
-                const height = Math.min(100, Math.max(10, k * 3));
-                bar.style.height = `${height}%`;
-                bar.style.flex = '1';
-                bar.style.background = k > 25 ? 'var(--accent-cyan)' : 'rgba(255, 255, 255, 0.15)';
-                bar.style.borderRadius = '2px';
-                bar.title = `Band K=${k}`;
-                container.appendChild(bar);
+            eventSource.onmessage = (event) => {
+                if (streamPaused) return;
+                try {
+                    const d = JSON.parse(event.data);
+                    if (d.line) appendLogLine(d.line);
+                } catch (e) {}
+            };
+
+            eventSource.onerror = () => {
+                setTimeout(initSSE, 3000);
+            };
+        }
+
+        let lineCounter = 0;
+        function appendLogLine(line) {
+            const div = document.createElement("div");
+            div.className = "terminal-line";
+
+            const now = new Date().toTimeString().split(" ")[0];
+            let lineClass = "log-info";
+
+            if (line.includes("BREAKTHROUGH") || line.includes("CRACKED") || line.includes("SUCCESS") || line.includes("FEASIBLE")) {
+                lineClass = "log-gain";
+                fetchMetrics(); // Refresh score cards immediately!
+            } else if (line.includes("[GPU") || line.includes("hip") || line.includes("CDNA3")) {
+                lineClass = "log-gpu";
+            } else if (line.includes("Error") || line.includes("Timed out") || line.includes("Warning")) {
+                lineClass = "log-warn";
+            }
+
+            div.innerHTML = `<span class="log-time">[${now}]</span> <span class="${lineClass}">${escapeHtml(line)}</span>`;
+            termBody.appendChild(div);
+            lineCounter++;
+            document.getElementById("term-line-count").innerText = `${lineCounter} events`;
+
+            if (termBody.children.length > 500) {
+                termBody.removeChild(termBody.firstChild);
+            }
+            termBody.scrollTop = termBody.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function clearTerminal() {
+            termBody.innerHTML = "";
+            lineCounter = 0;
+            document.getElementById("term-line-count").innerText = "0 events";
+        }
+
+        function toggleStream() {
+            streamPaused = !streamPaused;
+            const btn = document.getElementById("btn-toggle-stream");
+            const stat = document.getElementById("stream-status");
+            if (streamPaused) {
+                btn.innerText = "Resume Stream";
+                stat.className = "stream-indicator paused";
+                stat.innerHTML = "<span>&#x23F8; STREAM PAUSED</span>";
+            } else {
+                btn.innerText = "Pause Stream";
+                stat.className = "stream-indicator";
+                stat.innerHTML = `<span class="pulse-dot"></span><span>SSE TELEMETRY LINK LIVE (200ms)</span>`;
             }
         }
 
-        // Initial Boot
-        fetchMetrics();
-        loadInstance(55);
-        renderCliffBars();
-        setInterval(fetchMetrics, 3000);
+        // Fetch recent logs on initial load
+        async function loadInitialLogs() {
+            try {
+                const res = await fetch("/api/logs/recent");
+                const d = await res.json();
+                if (d.lines) {
+                    for (const l of d.lines) appendLogLine(l);
+                }
+            } catch (e) {}
+        }
+
+        // Init
+        window.addEventListener("DOMContentLoaded", () => {
+            resizeCanvas();
+            fetchMetrics();
+            loadInstance(998);
+            loadInitialLogs();
+            initSSE();
+            setInterval(fetchMetrics, 3000);
+        });
     </script>
 </body>
 </html>
