@@ -1,7 +1,7 @@
 {
-  "total_score": 22.4771685940087,
-  "last_updated": "2026-10-22 17:44:54",
-  "last_improved_n": 403,
-  "last_gain": 1.953759760137915e-08,
-  "last_source": "fault_dp_pass_K20_D3"
+  "total_score": 22.476993353252553,
+  "last_updated": "2026-10-22 19:15:27",
+  "last_improved_n": 647,
+  "last_gain": 4.164854336832995e-06,
+  "last_source": "mondrian_crop_from_n699"
 }

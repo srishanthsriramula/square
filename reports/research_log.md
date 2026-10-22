@@ -108,10 +108,36 @@ We engineered a production-grade, modular system:
   - Systematic screening of insertion coordinates revealed that corner positions $(0.5, 0.5)$ and $(31.4, 0.5)$ possess immediate natural slack:
     - $N=999$: L-BFGS penalty relaxation reached $E = 4.6730 \times 10^{-5}$ at $S = 31.9985$. Subsequent ALM + IPM quench reached $S = 32.0036$ (within $0.0036$ of integer bound), with soft rounded squares reaching $S_{soft} = 31.9995 < 32.0000$.
     - $N=936$: L-BFGS penalty relaxation reached $E = 2.2100 \times 10^{-5}$ at $S = 30.9980$.
-- **Theorem on Multi-Seam DP:**
-  - Proven that any single seam accommodating unit squares requires diagonal displacement $f \ge 0.520815$.
-  - Two parallel seams in the same diagonal direction require $L = K + f_1 + f_2 \ge K + 1.0416 > K + 1.0000$.
-  - Therefore, parallel dual-fault compositions in the same direction can never beat the integer grid; only perpendicular, cross-boundary, or insertion annealing can penetrate integer grid plateaus.
+### Experiment 8: The Integer Chain Obstruction Theorem & Line-Penalty Annealing
+- **Mathematical Derivation & Proof:**
+  - In any packing of unit squares in a container of side $S$: if there exists a sequence of $k$ squares whose pairwise separating axes are all along coordinate axis $X$ (e.g. $k$ upright squares side-by-side in a row), the width $W$ is strictly bounded below by $W \ge k \times 1.0 = k$.
+  - In particular, if $k = \lfloor S \rfloor + 1$, the container side length $S$ CANNOT be less than $\lfloor S \rfloor + 1$.
+  - **Diagnostic Breakthrough:** Our active-set analysis on $N=56$ ($L=8.000000000001$) and $N=936$ ($L=31.001056$) revealed that while the perpendicular dimension was strictly compressed below the integer bound (e.g. $X$-span for $N=56$ was $7.9923 < 8.0$), an intact chain of 8 upright squares formed in a single row/column, physically locking the container to $\ge 8.000000000000$.
+- **Structural Solution:**
+  - Enforce the "Line-Free" constraint: no axis-aligned strip may contain $\ge \lfloor S \rfloor + 1$ near-axis squares.
+  - Activated Evan Daniel's `--linepen` penalty term in native `packer hop`, penalizing configurations that form jam lines and guiding the search to preserve oblique crystal rotations across all cross-sections.
+
+### Experiment 9: Mondrian Cascading Corner Crops & Sub-22.477 Breakthrough
+- **Discovery & Methodology:**
+  - Integrated itsnaka's SQUISH / Mondrian corner-crop principle across all 1,000 instances.
+  - An atlas of 55,911 Pareto-optimal corner pieces was extracted across all 4 orientations.
+  - A systematic sweep across all donor packings revealed that dropping boundary rows/columns from higher-order fault-line packings yields strictly smaller valid packings for smaller $N$ than their standalone single-seam basins.
+- **Cascading Chain Reaction:**
+  - $N=340$ was improved by cropping 2 rows from $N=417$ ($18.9281609480 \to 18.9277693466$).
+  - Cascading from this newly improved $N=340$, cropping 1 row yielded an unprecedented improvement for $N=304$ ($17.9294277581 \to 17.9277693166$, gain $+0.00009512$).
+- **Verified Deliverables:**
+  - 8 instances strictly improved and registered:
+    - $N=304$: $17.9294277581 \to 17.9277693166$ (gain $+0.00009512$)
+    - $N=463$: $21.9712540439 \to 21.9706153096$ (gain $+0.00002968$)
+    - $N=340$: $18.9281609480 \to 18.9277693466$ (gain $+0.00002124$)
+    - $N=554$: $23.9833558394 \to 23.9829987594$ (gain $+0.00001517$)
+    - $N=647$: $25.9278175321 \to 25.9277115941$ (gain $+0.00000416$)
+    - $N=592$: $24.8250623095 \to 24.8249616139$ (gain $+0.00000414$)
+    - $N=498$: $22.8250404561 \to 22.8249615539$ (gain $+0.00000354$)
+    - $N=591$: $24.8250148671 \to 24.8249616136$ (gain $+0.00000219$)
+  - Total verified score reduction in this cycle: **`+0.00017524075615`**.
+  - All 1,000 instances re-verified with strict SAT geometry validator ($\epsilon = 10^{-10}$, 1,771,445 pairs, 0 overlaps, 2.11s).
+  - New total score: **`22.47699335325255`** (broke the 22.477000 threshold!).
 
 ---
 
@@ -119,8 +145,9 @@ We engineered a production-grade, modular system:
 
 | Metric | Reference Baseline | Current Verified Record |
 | :--- | :--- | :--- |
-| **Total Competition Score** | `22.47724589383040` | **`22.47716859400870`** |
-| **Total Verified Improvements** | 0 | **43 instances improved** |
-| **Distance to Sub-15 Target** | 7.47724589 | 7.47716859 |
-| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 2.14s) |
+| **Total Competition Score** | `22.47724589383040` | **`22.47699335325255`** |
+| **Total Verified Improvements** | 0 | **51 instances improved** |
+| **Cumulative Verified Score Drop**| 0.00000000 | **+0.00025254057785** |
+| **Distance to Sub-15 Target** | 7.47724589 | 7.47699335 |
+| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 2.11s) |
 | **Best Submission File** | `data/reference/` | `submissions/best_submission.csv` |

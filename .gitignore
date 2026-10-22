@@ -38,6 +38,7 @@ submissions/*.csv
 !submissions/best_submission.csv
 native/cpp/build/
 native/cpp/fault_dp_fast
+native/cpp/fault_dp_gap0
 squares_cpu_research/
 
 # IDE & OS
