@@ -1,0 +1,212 @@
+"""Fault-line Gadget Dynamic Programming (DP) Composer.
+
+Implements Chris Deotte's fault-line composition:
+Partitions an enclosing square of side K + f into two continents:
+1. Lower-left continent: upright unit squares on integer grid.
+2. Upper-right continent: upright unit squares shifted by (f, f).
+3. Fault-line interface: gadgets of size w x h with surplus dm and overhang f.
+
+Given a catalog of gadgets (crops and dense packings), uses DP to find
+the composition that minimizes f for each N = K^2 + D.
+"""
+
+from __future__ import annotations
+
+import math
+from typing import List, Tuple, Dict, Any, Optional
+import numpy as np
+
+from src.geometry.sat import (
+    compute_half_extents,
+    compute_enclosing_side,
+    validate_packing_sat,
+    EPSILON_DEFAULT
+)
+
+
+class Gadget:
+    def __init__(
+        self,
+        name: str,
+        w: int,
+        h: int,
+        dm: int,
+        f: float,
+        coords: np.ndarray,
+        source_n: int
+    ):
+        self.name = name
+        self.w = w
+        self.h = h
+        self.dm = dm
+        self.f = f
+        self.coords = coords.copy()
+        self.source_n = source_n
+
+    def __repr__(self):
+        return f"Gadget({self.name}: {self.w}x{self.h}, dm=+{self.dm}, f={self.f:.6f})"
+
+
+def extract_full_packings_as_gadgets(packings: Dict[int, np.ndarray]) -> List[Gadget]:
+    """Convert whole packings that have surplus into gadgets."""
+    gadgets = []
+    for n, coords in packings.items():
+        if n < 4:
+            continue
+        h = compute_half_extents(coords[:, 2])
+        xmin, ymin = np.min(coords[:, 0] - h), np.min(coords[:, 1] - h)
+        xmax, ymax = np.max(coords[:, 0] + h), np.max(coords[:, 1] + h)
+        W, H = xmax - xmin, ymax - ymin
+        w, h_int = int(math.floor(W)), int(math.floor(H))
+        
+        dm = n - w * h_int
+        if dm > 0:
+            fx = W - w
+            fy = H - h_int
+            f = max(fx, fy)
+            if f < 0.999999:
+                # Shift coordinates so bounding box starts at (0, 0)
+                norm_coords = coords.copy()
+                norm_coords[:, 0] -= xmin
+                norm_coords[:, 1] -= ymin
+                gadgets.append(Gadget(
+                    name=f"full_n{n}",
+                    w=w,
+                    h=h_int,
+                    dm=dm,
+                    f=f,
+                    coords=norm_coords,
+                    source_n=n
+                ))
+    return gadgets
+
+
+def run_fault_line_dp(
+    gadgets: List[Gadget],
+    max_k: int = 32,
+    max_f: float = 0.99
+) -> Dict[Tuple[int, int], Tuple[float, List[Gadget]]]:
+    """Run DP to find optimal gadget sequences for each (K, D).
+    
+    Returns:
+        {(K, D): (best_f, list_of_gadgets)}
+    """
+    # Group gadgets by dm and sort by f
+    best_for_kd: Dict[Tuple[int, int], Tuple[float, List[Gadget]]] = {}
+
+    # Sort gadgets by efficiency
+    usable_gadgets = [g for g in gadgets if g.f <= max_f and g.w <= max_k and g.h <= max_k]
+
+    # For each K, find combinations of gadgets whose sum(w) <= K and sum(h) <= K
+    # DP table for a fixed K: dp[cols, rows, surplus] -> min_f
+    # Since K <= 32, we can run DP for each K independently.
+    
+    for K in range(2, max_k + 1):
+        # State: dp[(c, r, d)] = (min_f, [gadgets])
+        # To avoid explosive state space, keep only pareto-optimal states
+        # A state (c, r, d, f) dominates (c', r', d', f') if c <= c', r <= r', d >= d', f <= f'
+        
+        dp: Dict[Tuple[int, int, int], Tuple[float, List[Gadget]]] = {
+            (0, 0, 0): (0.0, [])
+        }
+
+        # Candidate gadgets that fit in K x K
+        cand_g = [g for g in usable_gadgets if g.w <= K and g.h <= K]
+
+        # Single-gadget compositions
+        for g in cand_g:
+            state = (g.w, g.h, g.dm)
+            if state not in dp or g.f < dp[state][0]:
+                dp[state] = (g.f, [g])
+                
+        # Two-gadget compositions (with 1-unit spacing or corner)
+        # For simplicity and validity, use 0 or 1 spacing
+        current_states = list(dp.items())
+        for (c, r, d), (f_val, glist) in current_states:
+            if len(glist) >= 3:
+                continue # limit chain depth to 3 for fast search
+            for g in cand_g:
+                # Add with 1-unit safety gap between gadgets
+                new_c = c + g.w + 1
+                new_r = r + g.h + 1
+                new_d = d + g.dm
+                new_f = max(f_val, g.f)
+                
+                if new_c <= K and new_r <= K and new_f <= max_f:
+                    st = (new_c, new_r, new_d)
+                    if st not in dp or new_f < dp[st][0]:
+                        dp[st] = (new_f, glist + [g])
+
+        # Record best for each D
+        for (c, r, d), (f_val, glist) in dp.items():
+            if d > 0:
+                key = (K, d)
+                if key not in best_for_kd or f_val < best_for_kd[key][0]:
+                    best_for_kd[key] = (f_val, glist)
+
+    return best_for_kd
+
+
+def compose_packing(
+    K: int,
+    D: int,
+    f: float,
+    gadget_chain: List[Gadget]
+) -> np.ndarray:
+    """Build concrete coordinates for N = K^2 + D from fault-line composition."""
+    N = K * K + D
+    squares = []
+    
+    # Place gadgets along the anti-diagonal staircase
+    # Gadget 0 starts at (0, K - h_0)
+    # Gadget 1 starts at (w_0 + 1, K - h_0 - 1 - h_1), etc.
+    
+    gadget_boxes = [] # [(C, R, w, h, g)]
+    curr_c = 0
+    curr_r = K
+    for g in gadget_chain:
+        curr_r -= g.h
+        gadget_boxes.append((curr_c, curr_r, g.w, g.h, g))
+        curr_c += g.w + 1
+        curr_r -= 1
+
+    # Occupied cells in integer lattice
+    # Lower continent: (i, j) where i in [0, K-1], j in [0, K-1] that are strictly below/left of gadgets
+    # Upper continent: (i+f, j+f) that are strictly above/right of gadgets
+
+    for (C, R, w, h, g) in gadget_boxes:
+        # Place gadget squares shifted by (C, R)
+        for sq in g.coords:
+            squares.append([sq[0] + C, sq[1] + R, sq[2]])
+
+    # Now fill lower continent and upper continent
+    # For each cell (i, j) in K x K:
+    for i in range(K):
+        for j in range(K):
+            # Check if (i, j) is inside any gadget box
+            inside_gadget = False
+            for (C, R, w, h, g) in gadget_boxes:
+                if C <= i < C + w and R <= j < R + h:
+                    inside_gadget = True
+                    break
+            if inside_gadget:
+                continue
+
+            # Determine whether cell belongs to lower continent or upper continent
+            # A cell (i, j) belongs to lower continent if it is below/left of all gadgets
+            # It belongs to upper continent if it is above/right of all gadgets
+            is_lower = True
+            for (C, R, w, h, g) in gadget_boxes:
+                if i >= C and j >= R:
+                    is_lower = False
+                    break
+            
+            if is_lower:
+                # Upright unit square centered at (i + 0.5, j + 0.5)
+                squares.append([i + 0.5, j + 0.5, 0.0])
+            else:
+                # Shifted unit square centered at (i + f + 0.5, j + f + 0.5)
+                squares.append([i + f + 0.5, j + f + 0.5, 0.0])
+
+    arr = np.array(squares, dtype=np.float64)
+    return arr
