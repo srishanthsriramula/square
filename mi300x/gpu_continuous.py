@@ -155,6 +155,32 @@ def run_gpu_continuous():
 
                         # 2. Fast Polish via fq quench (Clarabel IPM active-set)
                         q_out = f"/tmp/gpu_q_{n}_{k}_out.txt"
+                        
+                        # First try instant polish via --no-alm (takes ~0.1s)
+                        qcmd_fast = [
+                            str(FQ_BIN), "quench",
+                            "--in", cfile,
+                            "--out", q_out,
+                            "--loosen", "1.0000",
+                            "--no-alm",
+                            "--pit", "80"
+                        ]
+                        subprocess.run(qcmd_fast, capture_output=True, text=True, timeout=10)
+                        if os.path.exists(q_out):
+                            q_side, q_coords = read_engine_config(q_out)
+                            if q_side < cur_s - 1e-10:
+                                val = validate_packing_sat(q_coords, eps=1e-10)
+                                if val["valid"] and val["side"] < cur_s - 1e-10:
+                                    success, gain, msg = reg.register_candidate(n, q_coords, source=f"mi300x_gpu_noalm_chain{k}")
+                                    if success:
+                                        log(f"[+] [GPU MI300X BREAKTHROUGH] N={n} IMPROVED FAST! side: {cur_s:.8f} -> {val['side']:.8f} (gain={gain:.8f}) | Score: {reg.get_score():.12f}")
+                                        reg.save_submission()
+                                        cur_s = val["side"]
+                                        if os.path.exists(q_out): os.remove(q_out)
+                                        if os.path.exists(cfile): os.remove(cfile)
+                                        continue
+
+                        # Full ALM polish fallback
                         qcmd = [
                             str(FQ_BIN), "quench",
                             "--in", cfile,
@@ -163,7 +189,7 @@ def run_gpu_continuous():
                             "--outer", "25",
                             "--pit", "80"
                         ]
-                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=20)
+                        qres = subprocess.run(qcmd, capture_output=True, text=True, timeout=45)
                         if qres.returncode == 0 and os.path.exists(q_out):
                             q_side, q_coords = read_engine_config(q_out)
                             if q_side < cur_s - 1e-10:
