@@ -27,6 +27,7 @@ from src.geometry.sat import (
 from src.optimizers.packer_engine import run_packer_hop
 from src.optimizers.fq_engine import quench_packing
 from src.constructions.fault_dp import (
+    extract_all_gadgets,
     extract_full_packings_as_gadgets,
     run_fault_line_dp,
     compose_packing
@@ -107,8 +108,8 @@ class ResearchEngine:
         return False, 0.0, f"No improvement for n={n}: cur={orig_side:.10f}, best={final_side:.10f}"
 
     def run_fault_line_dp_pass(self, max_k: int = 31) -> Tuple[int, float]:
-        """Run a full Fault-Line DP composition pass over all (K, D) pairs."""
-        gadgets = extract_full_packings_as_gadgets(self.reg.packings)
+        """Run a full Fault-Line DP composition pass over all (K, D) pairs using all full and crop gadgets."""
+        gadgets = extract_all_gadgets(self.reg.packings)
         best_kd = run_fault_line_dp(gadgets, max_k=max_k)
 
         registered = 0

@@ -1,6 +1,6 @@
 """Fault-line Gadget Dynamic Programming (DP) Composer.
 
-Implements Chris Deotte's fault-line composition:
+Implements Chris Deotte's multi-gadget fault-line composition:
 Partitions an enclosing square of side K + f into two continents:
 1. Lower-left continent: upright unit squares on integer grid.
 2. Upper-right continent: upright unit squares shifted by (f, f).
@@ -53,9 +53,9 @@ def extract_full_packings_as_gadgets(packings: Dict[int, np.ndarray]) -> List[Ga
     for n, coords in packings.items():
         if n < 4:
             continue
-        h = compute_half_extents(coords[:, 2])
-        xmin, ymin = np.min(coords[:, 0] - h), np.min(coords[:, 1] - h)
-        xmax, ymax = np.max(coords[:, 0] + h), np.max(coords[:, 1] + h)
+        h_ext = compute_half_extents(coords[:, 2])
+        xmin, ymin = np.min(coords[:, 0] - h_ext), np.min(coords[:, 1] - h_ext)
+        xmax, ymax = np.max(coords[:, 0] + h_ext), np.max(coords[:, 1] + h_ext)
         W, H = xmax - xmin, ymax - ymin
         w, h_int = int(math.floor(W)), int(math.floor(H))
         
@@ -65,7 +65,6 @@ def extract_full_packings_as_gadgets(packings: Dict[int, np.ndarray]) -> List[Ga
             fy = H - h_int
             f = max(fx, fy)
             if f < 0.999999:
-                # Shift coordinates so bounding box starts at (0, 0)
                 norm_coords = coords.copy()
                 norm_coords[:, 0] -= xmin
                 norm_coords[:, 1] -= ymin
@@ -81,6 +80,100 @@ def extract_full_packings_as_gadgets(packings: Dict[int, np.ndarray]) -> List[Ga
     return gadgets
 
 
+def extract_crops_from_donors(
+    packings: Dict[int, np.ndarray],
+    donor_ns: Optional[List[int]] = None,
+    max_w: int = 15,
+    max_h: int = 15
+) -> List[Gadget]:
+    """Extract rectangular window crops that contain surplus squares."""
+    if donor_ns is None:
+        # High density and diverse rotated packings
+        donor_ns = [
+            5, 11, 14, 18, 26, 28, 40, 50, 65, 82, 85, 105, 126,
+            147, 170, 207, 265, 301, 372, 451, 602, 641, 653, 699
+        ]
+        
+    crops: List[Gadget] = []
+    
+    for n in donor_ns:
+        if n not in packings:
+            continue
+        coords = packings[n]
+        h_ext = compute_half_extents(coords[:, 2])
+        xmin, ymin = float(np.min(coords[:, 0] - h_ext)), float(np.min(coords[:, 1] - h_ext))
+        xmax, ymax = float(np.max(coords[:, 0] + h_ext)), float(np.max(coords[:, 1] + h_ext))
+        total_W = xmax - xmin
+        total_H = ymax - ymin
+        
+        cx = coords[:, 0] - xmin
+        cy = coords[:, 1] - ymin
+        
+        for w in range(2, min(max_w + 1, int(math.floor(total_W)))):
+            for h_dim in range(2, min(max_h + 1, int(math.floor(total_H)))):
+                for f_target in [0.5, 0.70710678, 0.75, 0.8, 0.85, 0.9, 0.95]:
+                    W = w + f_target
+                    H = h_dim + f_target
+                    if W > total_W or H > total_H:
+                        continue
+                    
+                    found_crop = False
+                    for x0 in np.arange(0.0, total_W - W + 1e-4, 1.0):
+                        for y0 in np.arange(0.0, total_H - H + 1e-4, 1.0):
+                            inside = (
+                                (cx - h_ext >= x0) &
+                                (cx + h_ext <= x0 + W) &
+                                (cy - h_ext >= y0) &
+                                (cy + h_ext <= y0 + H)
+                            )
+                            M = int(np.sum(inside))
+                            dm = M - w * h_dim
+                            if dm >= 1:
+                                sub = coords[inside].copy()
+                                sub_h = h_ext[inside]
+                                sub_xmin = np.min(sub[:, 0] - sub_h)
+                                sub_ymin = np.min(sub[:, 1] - sub_h)
+                                sub[:, 0] -= sub_xmin
+                                sub[:, 1] -= sub_ymin
+                                act_W = np.max(sub[:, 0] + sub_h)
+                                act_H = np.max(sub[:, 1] + sub_h)
+                                act_f = max(act_W - w, act_H - h_dim)
+                                
+                                crops.append(Gadget(
+                                    name=f"crop_n{n}_{w}x{h_dim}_dm{dm}",
+                                    w=w,
+                                    h=h_dim,
+                                    dm=dm,
+                                    f=act_f,
+                                    coords=sub,
+                                    source_n=n
+                                ))
+                                found_crop = True
+                                break
+                        if found_crop:
+                            break
+                            
+    return crops
+
+
+def extract_all_gadgets(packings: Dict[int, np.ndarray]) -> List[Gadget]:
+    """Extract both full packings and crop gadgets, pruned to Pareto-optimal."""
+    full_g = extract_full_packings_as_gadgets(packings)
+    crop_g = extract_crops_from_donors(packings)
+    all_g = full_g + crop_g
+    
+    # Pareto prune: for each (w, h, dm), keep the one with minimal f
+    best_by_whd: Dict[Tuple[int, int, int], Gadget] = {}
+    for g in all_g:
+        key = (g.w, g.h, g.dm)
+        if key not in best_by_whd or g.f < best_by_whd[key].f:
+            best_by_whd[key] = g
+            
+    # Also add transposed (h, w) under 90-degree rotation if beneficial
+    result = list(best_by_whd.values())
+    return result
+
+
 def run_fault_line_dp(
     gadgets: List[Gadget],
     max_k: int = 32,
@@ -91,26 +184,14 @@ def run_fault_line_dp(
     Returns:
         {(K, D): (best_f, list_of_gadgets)}
     """
-    # Group gadgets by dm and sort by f
     best_for_kd: Dict[Tuple[int, int], Tuple[float, List[Gadget]]] = {}
-
-    # Sort gadgets by efficiency
     usable_gadgets = [g for g in gadgets if g.f <= max_f and g.w <= max_k and g.h <= max_k]
 
-    # For each K, find combinations of gadgets whose sum(w) <= K and sum(h) <= K
-    # DP table for a fixed K: dp[cols, rows, surplus] -> min_f
-    # Since K <= 32, we can run DP for each K independently.
-    
     for K in range(2, max_k + 1):
-        # State: dp[(c, r, d)] = (min_f, [gadgets])
-        # To avoid explosive state space, keep only pareto-optimal states
-        # A state (c, r, d, f) dominates (c', r', d', f') if c <= c', r <= r', d >= d', f <= f'
-        
         dp: Dict[Tuple[int, int, int], Tuple[float, List[Gadget]]] = {
             (0, 0, 0): (0.0, [])
         }
 
-        # Candidate gadgets that fit in K x K
         cand_g = [g for g in usable_gadgets if g.w <= K and g.h <= K]
 
         # Single-gadget compositions
@@ -119,14 +200,12 @@ def run_fault_line_dp(
             if state not in dp or g.f < dp[state][0]:
                 dp[state] = (g.f, [g])
                 
-        # Two-gadget compositions (with 1-unit spacing or corner)
-        # For simplicity and validity, use 0 or 1 spacing
+        # Two-gadget compositions
         current_states = list(dp.items())
         for (c, r, d), (f_val, glist) in current_states:
             if len(glist) >= 3:
-                continue # limit chain depth to 3 for fast search
+                continue
             for g in cand_g:
-                # Add with 1-unit safety gap between gadgets
                 new_c = c + g.w + 1
                 new_r = r + g.h + 1
                 new_d = d + g.dm
@@ -137,7 +216,6 @@ def run_fault_line_dp(
                     if st not in dp or new_f < dp[st][0]:
                         dp[st] = (new_f, glist + [g])
 
-        # Record best for each D
         for (c, r, d), (f_val, glist) in dp.items():
             if d > 0:
                 key = (K, d)
@@ -157,11 +235,7 @@ def compose_packing(
     N = K * K + D
     squares = []
     
-    # Place gadgets along the anti-diagonal staircase
-    # Gadget 0 starts at (0, K - h_0)
-    # Gadget 1 starts at (w_0 + 1, K - h_0 - 1 - h_1), etc.
-    
-    gadget_boxes = [] # [(C, R, w, h, g)]
+    gadget_boxes = []
     curr_c = 0
     curr_r = K
     for g in gadget_chain:
@@ -170,20 +244,12 @@ def compose_packing(
         curr_c += g.w + 1
         curr_r -= 1
 
-    # Occupied cells in integer lattice
-    # Lower continent: (i, j) where i in [0, K-1], j in [0, K-1] that are strictly below/left of gadgets
-    # Upper continent: (i+f, j+f) that are strictly above/right of gadgets
-
     for (C, R, w, h, g) in gadget_boxes:
-        # Place gadget squares shifted by (C, R)
         for sq in g.coords:
             squares.append([sq[0] + C, sq[1] + R, sq[2]])
 
-    # Now fill lower continent and upper continent
-    # For each cell (i, j) in K x K:
     for i in range(K):
         for j in range(K):
-            # Check if (i, j) is inside any gadget box
             inside_gadget = False
             for (C, R, w, h, g) in gadget_boxes:
                 if C <= i < C + w and R <= j < R + h:
@@ -192,9 +258,6 @@ def compose_packing(
             if inside_gadget:
                 continue
 
-            # Determine whether cell belongs to lower continent or upper continent
-            # A cell (i, j) belongs to lower continent if it is below/left of all gadgets
-            # It belongs to upper continent if it is above/right of all gadgets
             is_lower = True
             for (C, R, w, h, g) in gadget_boxes:
                 if i >= C and j >= R:
@@ -202,10 +265,8 @@ def compose_packing(
                     break
             
             if is_lower:
-                # Upright unit square centered at (i + 0.5, j + 0.5)
                 squares.append([i + 0.5, j + 0.5, 0.0])
             else:
-                # Shifted unit square centered at (i + f + 0.5, j + f + 0.5)
                 squares.append([i + f + 0.5, j + f + 0.5, 0.0])
 
     arr = np.array(squares, dtype=np.float64)
