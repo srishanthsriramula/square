@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQUARES IN SQUARES // MI300X RESEARCH DASHBOARD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #08090c;
+            --bg-card: rgba(18, 20, 26, 0.75);
+            --bg-card-hover: rgba(26, 29, 38, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 242, 254, 0.3);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-rose: #f43f5e;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.04) 0%, transparent 40%);
+        }
+
+        /* Top Navigation Bar */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 16px var(--border-glow);
+        }
+
+        .brand-logo svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+        }
+
+        .brand-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-title span {
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 2px 6px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 4px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .nav-tab {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .nav-tab.active, .nav-tab:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-tab.active {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            color: var(--accent-emerald);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
+            box-shadow: 0 0 8px var(--accent-emerald);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Hero Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--card-accent, var(--accent-cyan)), transparent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #fff;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-delta {
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-delta.positive { color: var(--accent-emerald); }
+        .stat-delta.neutral { color: var(--accent-cyan); }
+        .stat-delta.warning { color: var(--accent-amber); }
+
+        /* Workspace Grid (Visualizer + Control Panel) */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .canvas-container {
+            flex: 1;
+            min-height: 580px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #050608;
+            position: relative;
+            padding: 1rem;
+        }
+
+        canvas {
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            background: #0a0b0f;
+        }
+
+        .canvas-toolbar {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(18, 20, 26, 0.9);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-btn.active, .tool-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Controls */
+        .sidebar-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            max-height: 650px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="number"], select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            flex: 1;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .chip:hover, .chip.active {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metrics-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .metrics-table td {
+            padding: 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .metrics-table td:last-child {
+            text-align: right;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Real-Time Event Log */
+        .log-box {
+            background: #060709;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .log-time { color: var(--accent-cyan); }
+        .log-msg { color: var(--text-secondary); }
+        .log-highlight { color: var(--accent-emerald); }
+
+        /* Full Landscape Chart Section */
+        .chart-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#fff" stroke-width="2"/><rect x="7" y="7" width="10" height="10" rx="1" fill="#fff"/></svg>
+            </div>
+            <div class="brand-title">
+                SQUARES IN SQUARES <span>RESEARCH V2</span>
+            </div>
+        </div>
+
+        <nav class="nav-tabs">
+            <a href="#overview" class="nav-tab active">Overview</a>
+            <a href="#visualizer" class="nav-tab">2D Visualizer</a>
+            <a href="#frontier" class="nav-tab">Grid Frontier</a>
+            <a href="#gpu" class="nav-tab">MI300X Hardware</a>
+        </nav>
+
+        <div class="status-pill">
+            <div class="pulse-dot"></div>
+            <span>ROCm // MI300X ACTIVE</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero KPI Cards -->
+        <div class="stats-grid">
+            <div class="stat-card" style="--card-accent: var(--accent-cyan);">
+                <div class="stat-label">
+                    <span>Certified Total Score</span>
+                    <span>Σ (L/√N - 1)</span>
+                </div>
+                <div class="stat-value" id="kpi-score">22.475412</div>
+                <div class="stat-delta positive">
+                    <span>▼ -0.001834 vs baseline (63 records)</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-purple);">
+                <div class="stat-label">
+                    <span>Research Goal</span>
+                    <span>Target</span>
+                </div>
+                <div class="stat-value" style="color: var(--accent-purple);">15.000000</div>
+                <div class="stat-delta neutral">
+                    <span>Milestone 1: Sub-22.0 in progress</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-emerald);">
+                <div class="stat-label">
+                    <span>High-Deficit Grid Pool</span>
+                    <span>Cracking Goldmine</span>
+                </div>
+                <div class="stat-value" id="kpi-grid-pool">184</div>
+                <div class="stat-delta positive">
+                    <span>Potential Gain: +1.2 to 1.8 pts</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--card-accent: var(--accent-amber);">
+                <div class="stat-label">
+                    <span>AMD Instinct MI300X</span>
+                    <span>CDNA3 750W</span>
+                </div>
+                <div class="stat-value" style="color: var(--accent-amber);">19,456</div>
+                <div class="stat-delta warning">
+                    <span>304 CUs // 192GB HBM3 Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualizer & Control Grid -->
+        <div class="workspace-grid" id="visualizer">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>Pack Visualizer // Exact Separating-Axis Layout</span>
+                    </div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted);" id="current-pack-tag">
+                        Instance N=55
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="packCanvas" width="560" height="560"></canvas>
+                    <div class="canvas-toolbar">
+                        <button class="tool-btn active" id="btn-toggle-tilted">Highlight Tilted</button>
+                        <button class="tool-btn" id="btn-toggle-voids">Show Voids</button>
+                        <button class="tool-btn" id="btn-reset-view">Reset View</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Instance Controls & Geometry</div>
+                </div>
+                <div class="sidebar-content">
+                    <div class="form-group">
+                        <label class="form-label">Select Instance N (1 to 1000)</label>
+                        <div class="input-row">
+                            <input type="number" id="input-n" min="1" max="1000" value="55">
+                            <button class="chip active" id="btn-load-n" style="padding: 8px 14px;">Load</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Breakthrough Landmarks</label>
+                        <div class="quick-chips">
+                            <div class="chip" onclick="selectInstance(55)">N=55 (Record)</div>
+                            <div class="chip" onclick="selectInstance(56)">N=56 (Grid Wall)</div>
+                            <div class="chip" onclick="selectInstance(110)">N=110</div>
+                            <div class="chip" onclick="selectInstance(801)">N=801 (GPU Seed)</div>
+                            <div class="chip" onclick="selectInstance(935)">N=935</div>
+                            <div class="chip" onclick="selectInstance(936)">N=936 (Deficit 25)</div>
+                            <div class="chip" onclick="selectInstance(988)">N=988 (Record)</div>
+                            <div class="chip" onclick="selectInstance(998)">N=998 (Record)</div>
+                            <div class="chip" onclick="selectInstance(999)">N=999 (Grid Wall)</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Geometric Metrics</label>
+                        <table class="metrics-table">
+                            <tr>
+                                <td>Container Side L</td>
+                                <td id="metric-side">7.94577101</td>
+                            </tr>
+                            <tr>
+                                <td>Score Contribution</td>
+                                <td id="metric-score">0.071408</td>
+                            </tr>
+                            <tr>
+                                <td>Packing Density</td>
+                                <td id="metric-density">87.11%</td>
+                            </tr>
+                            <tr>
+                                <td>Theoretical Bound √N</td>
+                                <td id="metric-bound">7.416198</td>
+                            </tr>
+                            <tr>
+                                <td>Tilted Crystals</td>
+                                <td id="metric-tilted">18 squares</td>
+                            </tr>
+                            <tr>
+                                <td>Integer Grid Barrier</td>
+                                <td id="metric-grid-wall">8.000000</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Live Event Stream</label>
+                        <div class="log-box" id="log-box">
+                            <div class="log-entry"><span class="log-time">[22:28:55]</span> <span class="log-msg">SSH link established to 129.212.178.6</span></div>
+                            <div class="log-entry"><span class="log-time">[22:29:04]</span> <span class="log-highlight">AMD Instinct MI300X Detected (37°C, 750W cap)</span></div>
+                            <div class="log-entry"><span class="log-time">[22:32:36]</span> <span class="log-msg">ROCm packages, cargo & rustc initialized</span></div>
+                            <div class="log-entry"><span class="log-time">[22:34:00]</span> <span class="log-highlight">Dashboard port 3000 online & bound to 0.0.0.0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frontier Landscape Chart -->
+        <div class="chart-section" id="frontier">
+            <div class="panel-header" style="border: none; padding: 0 0 1rem 0;">
+                <div class="panel-title">
+                    <span>The K(K+1) Tail Cliff // Unexplored High-Deficit Grid Opportunities</span>
+                </div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent-emerald);">
+                    424 Grid Tail Instances = 6.789971 points
+                </div>
+            </div>
+            <div style="height: 180px; width: 100%; background: #050608; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: flex-end; padding: 10px; gap: 2px;" id="cliff-bar-container">
+                <!-- Bars dynamically rendered via JS -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentInstanceData = null;
+        let showTilted = true;
+        let showVoids = false;
+
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('/api/metrics');
+                const data = await res.json();
+                document.getElementById('kpi-score').textContent = data.current_score.toFixed(6);
+            } catch (e) {
+                console.error("Metrics fetch error:", e);
+            }
+        }
+
+        async function loadInstance(n) {
+            try {
+                const res = await fetch(`/api/instance/${n}`);
+                const data = await res.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                currentInstanceData = data;
+                updateMetrics(data);
+                renderPacking(data);
+            } catch (e) {
+                console.error("Instance load error:", e);
+            }
+        }
+
+        function updateMetrics(data) {
+            document.getElementById('current-pack-tag').textContent = `Instance N=${data.n}`;
+            document.getElementById('metric-side').textContent = data.side.toFixed(8);
+            document.getElementById('metric-score').textContent = data.score_n.toFixed(6);
+            document.getElementById('metric-density').textContent = (data.density * 100).toFixed(2) + '%';
+            document.getElementById('metric-bound').textContent = data.sqrt_n.toFixed(6);
+            
+            // Count tilted
+            let tilted = 0;
+            data.squares.forEach(sq => {
+                if (Math.abs(Math.sin(2 * sq.angle)) > 0.05) tilted++;
+            });
+            document.getElementById('metric-tilted').textContent = `${tilted} / ${data.n} squares`;
+            document.getElementById('metric-grid-wall').textContent = Math.ceil(data.sqrt_n).toFixed(6);
+        }
+
+        function renderPacking(data) {
+            const canvas = document.getElementById('packCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const padding = 40;
+            const drawSize = width - 2 * padding;
+            const scale = drawSize / data.side;
+
+            // Draw enclosing square container
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(padding, padding, drawSize, drawSize);
+
+            // Subtle container grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            const gridStep = Math.max(1, Math.floor(data.side / 10));
+            for (let g = gridStep; g < data.side; g += gridStep) {
+                ctx.beginPath();
+                ctx.moveTo(padding + g * scale, padding);
+                ctx.lineTo(padding + g * scale, padding + drawSize);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(padding, padding + g * scale);
+                ctx.lineTo(padding + drawSize, padding + g * scale);
+                ctx.stroke();
+            }
+
+            // Draw unit squares
+            data.squares.forEach((sq, i) => {
+                const cx = padding + sq.x * scale;
+                const cy = padding + (data.side - sq.y) * scale; // Flip Y for standard canvas
+                const rad = -sq.angle; // Adjust rotation direction
+
+                const isTilted = Math.abs(Math.sin(2 * sq.angle)) > 0.05;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(rad);
+
+                const s = scale; // unit square side length in canvas pixels
+                const hs = s / 2;
+
+                if (isTilted && showTilted) {
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
+                    ctx.strokeStyle = '#f59e0b';
+                } else {
+                    ctx.fillStyle = 'rgba(0, 242, 254, 0.2)';
+                    ctx.strokeStyle = '#00f2fe';
+                }
+
+                ctx.lineWidth = 1.2;
+                ctx.fillRect(-hs, -hs, s, s);
+                ctx.strokeRect(-hs, -hs, s, s);
+
+                // Small center pip
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-1.5, -1.5, 3, 3);
+
+                ctx.restore();
+            });
+        }
+
+        function selectInstance(n) {
+            document.getElementById('input-n').value = n;
+            loadInstance(n);
+        }
+
+        // Setup event listeners
+        document.getElementById('btn-load-n').addEventListener('click', () => {
+            const n = parseInt(document.getElementById('input-n').value);
+            if (n >= 1 && n <= 1000) loadInstance(n);
+        });
+
+        document.getElementById('btn-toggle-tilted').addEventListener('click', (e) => {
+            showTilted = !showTilted;
+            e.target.classList.toggle('active', showTilted);
+            if (currentInstanceData) renderPacking(currentInstanceData);
+        });
+
+        document.getElementById('btn-toggle-voids').addEventListener('click', (e) => {
+            showVoids = !showVoids;
+            e.target.classList.toggle('active', showVoids);
+            if (currentInstanceData) renderPacking(currentInstanceData);
+        });
+
+        document.getElementById('btn-reset-view').addEventListener('click', () => {
+            if (currentInstanceData) renderPacking(currentInstanceData);
+        });
+
+        // Initialize Cliff bars
+        function renderCliffBars() {
+            const container = document.getElementById('cliff-bar-container');
+            container.innerHTML = '';
+            for (let k = 2; k <= 31; k++) {
+                const bar = document.createElement('div');
+                const height = Math.min(100, Math.max(10, k * 3));
+                bar.style.height = `${height}%`;
+                bar.style.flex = '1';
+                bar.style.background = k > 25 ? 'var(--accent-cyan)' : 'rgba(255, 255, 255, 0.15)';
+                bar.style.borderRadius = '2px';
+                bar.title = `Band K=${k}`;
+                container.appendChild(bar);
+            }
+        }
+
+        // Initial Boot
+        fetchMetrics();
+        loadInstance(55);
+        renderCliffBars();
+        setInterval(fetchMetrics, 3000);
+    </script>
+</body>
+</html>
