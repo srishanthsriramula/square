@@ -172,6 +172,9 @@ We engineered a production-grade, modular system:
     - $N=971$: $31.6787805214 \to 31.6787798807$ (gain $+0.0000000206$)
     - $N=972$: $31.6923887864 \to 31.6923881554$ (gain $+0.0000000202$)
     - $N=904$: $30.5710684188 \to 30.5710678119$ (gain $+0.0000000202$)
+    - $N=918$: $30.8137091344 \to 30.8137084990$ (gain $+0.0000000210$)
+    - $N=920$: $30.8284277526 \to 30.8284271248$ (gain $+0.0000000207$)
+    - $N=919$: $30.8250251041 \to 30.8241233885$ (gain $+0.0000297449$ — major breakthrough!)
 - **Analysis of Multi-Scale Jamming & Event-Chain Basin Hopping:**
   - Demonstrated why small instances ($N \le 100$) resist continuous active-set relaxation (their contact graphs possess zero continuous degrees of freedom without topological reconfiguration).
   - Executed 4,000-iteration event-chain basin hopping (`packer hop`) on $N=68$, descending through the barrier down to $s=8.798785$ ($E = 8.095 \times 10^{-11}$).
@@ -189,9 +192,9 @@ We engineered a production-grade, modular system:
 
 | Metric | Reference Baseline | Current Verified Record |
 | :--- | :--- | :--- |
-| **Total Competition Score** | `22.47724589383040` | **`22.47699329226705`** |
-| **Total Verified Improvements** | 0 | **54 instances improved** |
-| **Cumulative Verified Score Drop**| 0.00000000 | **+0.00025260156335** |
-| **Distance to Sub-15 Target** | 7.47724589 | 7.47699329 |
-| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 4.54s) |
+| **Total Competition Score** | `22.47724589383040` | **`22.47696350574024`** |
+| **Total Verified Improvements** | 0 | **57 instances improved** |
+| **Cumulative Verified Score Drop**| 0.00000000 | **+0.00028238809016** |
+| **Distance to Sub-15 Target** | 7.47724589 | 7.47696351 |
+| **Independent SAT Validator** | Pass ($\epsilon = 10^{-10}$) | **Pass 1000/1000** (1.77M pairs, 2.16s) |
 | **Best Submission File** | `data/reference/` | `submissions/best_submission.csv` |
