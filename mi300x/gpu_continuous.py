@@ -98,23 +98,24 @@ def run_gpu_continuous():
 
             perturb = "0.010" if is_donor else "0.005"
             if n <= 150:
-                sweeps = "10000"
-            elif n <= 400:
-                sweeps = "6000"
-            elif n <= 700:
                 sweeps = "4000"
+            elif n <= 350:
+                sweeps = "2000"
+            elif n <= 650:
+                sweeps = "1200"
             else:
-                sweeps = "2500"
+                sweeps = "800"
 
             cmd = [
                 str(BUILD_BIN),
                 "--n", str(n),
                 "--side", f"{target_s:.8f}",
-                "--blocks", "1024",
+                "--blocks", "2048",
                 "--sweeps", sweeps,
                 "--perturb", perturb,
                 "--tele", "0.005",
                 "--temp", "5e-3",
+                "--quench", "0",
                 "--keep", "4",
                 "--out", out_prefix,
                 "--in", seed_file,
@@ -180,7 +181,12 @@ def run_gpu_continuous():
                                         if os.path.exists(cfile): os.remove(cfile)
                                         continue
 
-                        # Full ALM polish fallback
+                        # Full ALM polish fallback: only for near-feasible candidates (margin >= -0.05) and top 2 chains
+                        if val.get("min_margin", -1.0) < -0.05 or k > 1:
+                            if os.path.exists(q_out): os.remove(q_out)
+                            if os.path.exists(cfile): os.remove(cfile)
+                            continue
+
                         qcmd = [
                             str(FQ_BIN), "quench",
                             "--in", cfile,

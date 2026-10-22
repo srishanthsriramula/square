@@ -38,10 +38,13 @@
 #endif
 
 #ifndef LPP
-#define LPP 32          // 32 lanes per packing
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIPCC__)
+#define LPP 64          // 64 lanes per packing (native CDNA3 wavefront)
+#define PPB 1           // 1 packing per block -> 64 threads
+#else
+#define LPP 32          // 32 lanes per packing for CUDA
+#define PPB 2           // 2 packings per block -> 64 threads
 #endif
-#ifndef PPB
-#define PPB 2           // 2 packings per block -> 64 threads (1 CDNA3 wavefront!)
 #endif
 #define BLOCK (LPP * PPB)
 
