@@ -39,6 +39,8 @@ def get_high_deficit_grid_targets(min_deficit: int = 5) -> List[int]:
     targets = []
     for K in range(2, 32):
         for n in range(K * (K + 1), (K + 1) ** 2):
+            if n > 1000:
+                continue
             deficit = (K + 1) ** 2 - n
             if deficit >= min_deficit:
                 targets.append((n, K + 1, deficit))
@@ -84,7 +86,7 @@ def crack_instance_on_gpu(
     if seed_file and os.path.exists(seed_file):
         cmd.extend(["--in", seed_file])
 
-    print(f"[GPU MI300X] Launching {blocks * 32} annealing chains for N={n} (target L={target_side:.6f})...")
+    print(f"[GPU MI300X] Launching {blocks * 2} annealing chains for N={n} (target L={target_side:.6f})...")
     t0 = time.time()
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)

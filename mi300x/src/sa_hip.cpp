@@ -38,10 +38,10 @@
 #endif
 
 #ifndef LPP
-#define LPP 8           // lanes per packing
+#define LPP 32          // 32 lanes per packing
 #endif
 #ifndef PPB
-#define PPB 32          // packings per block
+#define PPB 2           // 2 packings per block -> 64 threads (1 CDNA3 wavefront!)
 #endif
 #define BLOCK (LPP * PPB)
 
