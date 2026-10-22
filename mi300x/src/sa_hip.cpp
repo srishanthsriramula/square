@@ -190,7 +190,7 @@ __device__ __forceinline__ void depth_grad(float dx, float dy,
 }
 
 __device__ float quench(float4 *q, float *th, float &side, float *gx, float *gy,
-                        float *gt, int n, float mu, int iters, int g) {
+                        float *gt, int n, float mu, int iters, int g, float side0) {
     float step = 1e-5f;
     float f = 1e30f;
     for (int it = 0; it < iters; it++) {
@@ -230,7 +230,7 @@ __device__ float quench(float4 *q, float *th, float &side, float *gx, float *gy,
                 __sincosf(t, &a.w, &a.z);
                 q[i] = a;
             }
-            float ns = side - step * ds;
+            float ns = fminf(side - step * ds, side0);
             SYNC_WARP(GMASK(g));
             float f1 = ns + mu * (pair_total(q, n, g) + wall_total(q, n, ns, g));
             if (f1 <= f0) { side = ns; f = f1; moved = true; step *= 1.3f; break; }
@@ -358,12 +358,12 @@ __global__ __launch_bounds__(BLOCK) void anneal(
             float dside = rndn(st) * step * 0.5f;
             float w1 = wall_total(q, n, side + dside, g);
             float d = dside + mu * (w1 - w0);
-            if (d <= 0.0f || rndf(st) < __expf(-d / T)) side += dside;
+            if (d <= 0.0f || rndf(st) < __expf(-d / T)) side = fminf(side + dside, side0);
         }
     }
 
     for (int qq = 0; qq < qstages; qq++)
-        quench(q, th, side, gx, gy, gt, n, mu1 * powf(10.0f, (float)qq), 300, g);
+        quench(q, th, side, gx, gy, gt, n, mu1 * powf(10.0f, (float)qq), 300, g, side0);
 
     for (int i = g; i < n; i += LPP) {
         float4 a = q[i];
